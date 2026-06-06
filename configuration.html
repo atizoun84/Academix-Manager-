@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academix Manager</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="logoapp.png">
+    <meta name="theme-color" content="#075E54">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Thème WhatsApp Messenger */
+            --wa-dark-green: #075E54;
+            --wa-teal: #128C7E;
+            --wa-light-green: #25D366;
+            --wa-bg: #ECE5DD;
+            --wa-text: #303030;
+            --wa-white: #ffffff;
+        }
+
+        body {
+            background-color: var(--wa-bg);
+            color: var(--wa-text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Navbar Styling */
+        .navbar-custom {
+            background-color: var(--wa-dark-green);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .navbar-custom .navbar-brand,
+        .navbar-custom .nav-link,
+        .navbar-custom .navbar-toggler-icon {
+            color: var(--wa-white);
+        }
+        .navbar-brand-sub {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            display: block;
+            margin-top: -5px;
+        }
+
+        /* Custom Buttons */
+        .btn-wa {
+            background-color: var(--wa-light-green);
+            color: var(--wa-white);
+            border: none;
+            font-weight: 500;
+        }
+        .btn-wa:hover {
+            background-color: var(--wa-teal);
+            color: var(--wa-white);
+        }
+        .btn-wa-dark {
+            background-color: var(--wa-teal);
+            color: var(--wa-white);
+        }
+
+        /* Style ciblé pour la saisie utilisateur : Bleu foncé, grand caractère et gras */
+        .form-control, .form-select {
+            color: #0b3c5d !important;
+            font-weight: bold !important;
+            font-size: 1.1rem !important;
+        }
+
+        /* Force l'affichage des textes en gras dans les select */
+        select option {
+            font-weight: bold !important;
+            color: #0b3c5d !important;
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: var(--wa-white);
+            border-bottom: 2px solid var(--wa-bg);
+            font-weight: bold;
+            color: var(--wa-dark-green);
+        }
+
+        /* Hidden List Container */
+        #hiddenDataContainer {
+            display: none;
+            background-color: var(--wa-white);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        /* Overlay plein écran pour le succès avec animation */
+        .success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(7, 94, 84, 0.95);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--wa-white);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .success-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .success-anim-box {
+            transform: scale(0.7);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+        }
+        .success-overlay.active .success-anim-box {
+            transform: scale(1);
+        }
+        .checkmark-icon {
+            font-size: 5rem;
+            color: var(--wa-light-green);
+            animation: bounceIn 0.5s ease forward;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="successOverlay" class="success-overlay">
+        <div class="success-anim-box">
+            <div class="checkmark-icon" id="overlayIcon">✓</div>
+            <h2 class="mt-3" id="overlayTitle">Classes Générées avec Succès !</h2>
+            <p class="text-white-50" id="overlayMessage">La promotion a été ajoutée à la structure.</p>
+        </div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+                <img src="logoceg.png" alt="Logo" height="40" class="me-2" style="object-fit: contain;">
+                <div>
+                    <strong>Academix Manager</strong>
+                    <span id="pageHeaderTitle" class="navbar-brand-sub">Configuration de l'Établissement</span>
+                </div>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" style="border-color: white;">
+                <span class="navbar-toggler-icon" style="background-image: url('data:image/svg+xml;charset=utf8,%3Csvg viewBox=%220 0 30 30%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath stroke=%22rgba%28255, 255, 255, 1%29%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-miterlimit=%2210%22 d=%22M4 7h22M4 15h22M4 23h22%22/%3E%3C/svg%3E');"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link nav-home" href="index.html">ACCUEIL</a></li>
+                    <li class="nav-item"><a class="nav-link nav-config active" href="configuration.html">CONFIGURATION</a></li>
+                    <li class="nav-item"><a class="nav-link nav-saisie" href="saisie.html">SAISIE STATISTIQUES</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle nav-tableaux" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            TABLEAUX & RÉSULTATS
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item nav-tab1" href="tableau1.html">Tableau Synoptique</a></li>
+                            <li><a class="dropdown-item nav-tab2" href="tableau2.html">Effectifs et Résultats</a></li>
+                            <li><a class="dropdown-item nav-tab3" href="tableau3.html">Statistiques fin de période</a></li>
+                            <li><a class="dropdown-item nav-tab4" href="tableau4.html">Récapitulatif des résultats</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        <button id="installBtn" onclick="installPWA()" style="display:none;" class="btn btn-warning btn-sm mt-2 mt-lg-1">Installer l'App</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="card" id="configCard">
+            <div class="card-header">1. Configuration de l'établissement</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Nom de l'établissement</label>
+                        <input type="text" id="schoolName" class="form-control" placeholder="Ex: CEG Gamia">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Année Scolaire</label>
+                        <input type="text" id="schoolYear" class="form-control" placeholder="Ex: 2026-2027">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Nom du Directeur</label>
+                        <input type="text" id="directorName" class="form-control" placeholder="Ex: M. Jean GOMEZ">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Nom du Censeur</label>
+                        <input type="text" id="censorName" class="form-control" placeholder="Ex: Mme Marie COSSI">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Cycles disponibles</label><br>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="cycle1" value="Premier cycle" checked>
+                            <label class="form-check-label fw-bold" for="cycle1">Premier cycle</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="cycle2" value="Second cycle">
+                            <label class="form-check-label fw-bold" for="cycle2">Second cycle</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Période académique</label>
+                        <select id="academicPeriod" class="form-select" onchange="handlePeriodChange()">
+                            <option value="Trimestres">Trimestres</option>
+                            <option value="Semestres">Semestres</option>
+                        </select>
+                        <div id="periodDetails" class="form-text text-success fw-bold mt-2">Premier trimestre, second trimestre, troisième trimestre</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Code secret de sécurité</label>
+                        <input type="password" id="secretCodeInput" class="form-control" value="1234" placeholder="Code secret">
+                    </div>
+                    <div class="col-12 text-end">
+                        <button class="btn btn-danger font-weight-bold" id="btnLock" onclick="handleLockToggle()">Verrouiller la configuration</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">2. Gestion des Promotions et Classes</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Cycle</label>
+                        <select id="promoCycle" class="form-select">
+                            <option value="Premier cycle">Premier cycle</option>
+                            <option value="Second cycle">Second cycle</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Nom de la promotion</label>
+                        <input type="text" id="promoName" class="form-control" placeholder="Ex: 6ème">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Séries ou Mentions</label>
+                        <input type="text" id="promoSections" class="form-control" placeholder="Ex: A, B, C ou Général">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Nombre de classes</label>
+                        <input type="number" id="classCount" class="form-control" min="1" placeholder="Ex: 4">
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-wa" onclick="addPromotion()">Générer les classes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mb-5">
+            <button class="btn btn-outline-secondary" onclick="toggleHiddenData()">Afficher / Masquer la base de données locale</button>
+            <div id="hiddenDataContainer" class="text-start mt-3 shadow-sm">
+                <h5 class="border-bottom pb-2">Récapitulatif de l'Établissement</h5>
+                <div id="renderedData">
+                    <p class="text-muted">Aucune donnée générée pour le moment.</p>
+                </div>
+                
+                <div class="mt-4 pt-3 border-top">
+                    <h6 class="text-danger fw-bold mb-3">⚙️ Actions de Maintenance & Transfert</h6>
+                    <div class="row g-2">
+                        <div class="col-sm-6 col-md-3">
+                            <button class="btn btn-wa-dark w-100 btn-sm font-weight-bold" onclick="exportDataToJSON()">📤 Exporter en JSON</button>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <button class="btn btn-secondary w-100 btn-sm font-weight-bold" onclick="triggerImportClick()">📥 Importer un JSON</button>
+                            <input type="file" id="importJsonFile" accept=".json" style="display: none;" onchange="importDataFromJSON(event)">
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <button class="btn btn-outline-danger w-100 btn-sm font-weight-bold" onclick="clearConfigData()">🗑️ Purger Configuration</button>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <button class="btn btn-danger w-100 btn-sm font-weight-bold" onclick="clearStatisticsData()">❌ Purger Saisie Stats</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center py-3 mt-5 border-top bg-white text-muted small">
+        Concepteur : <strong>Atizoun Plateny AMOUSSOU</strong> | Email : <a href="mailto:atizoun@gmail.com">atizoun@gmail.com</a> | Tél : 01 97 74 40 35
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // ... (votre code JavaScript existant reste identique) ...
+        /**
+         * ÉTAT GLOBAL DE L'APPLICATION
+         */
+        let AppState = {
+            isLocked: false,
+            secretCode: '1234',
+            school: { name: '', year: '', director: '', censor: '', academicPeriod: 'Trimestres', cycles: [] },
+            promotions: [],
+            stats: {}
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+            handlePeriodChange();
+        });
+
+        function saveToLocalStorage() { localStorage.setItem('ProSchool_AppState_Secure', JSON.stringify(AppState)); }
+
+        function loadFromLocalStorage() {
+            const data = localStorage.getItem('ProSchool_AppState_Secure');
+            if (data) {
+                try {
+                    AppState = JSON.parse(data);
+                    if (!AppState.stats) AppState.stats = {};
+                    document.getElementById('secretCodeInput').value = AppState.secretCode || '1234';
+                    document.getElementById('academicPeriod').value = AppState.school.academicPeriod || 'Trimestres';
+                    document.getElementById('schoolName').value = AppState.school.name || '';
+                    document.getElementById('schoolYear').value = AppState.school.year || '';
+                    document.getElementById('directorName').value = AppState.school.director || '';
+                    document.getElementById('censorName').value = AppState.school.censor || '';
+                    if (AppState.school.cycles) {
+                        document.getElementById('cycle1').checked = AppState.school.cycles.includes('Premier cycle');
+                        document.getElementById('cycle2').checked = AppState.school.cycles.includes('Second cycle');
+                    }
+                    if (AppState.isLocked) applyLockUI(true);
+                    else applyLockUI(false);
+                    updateHiddenView();
+                } catch (e) { console.error(e); }
+            }
+        }
+
+        function handlePeriodChange() {
+            const period = document.getElementById('academicPeriod').value;
+            const detailsDiv = document.getElementById('periodDetails');
+            detailsDiv.innerText = (period === 'Trimestres') ? "Premier trimestre, second trimestre, troisième trimestre" : "Premier semestre, second semestre";
+            if (!AppState.isLocked) { AppState.school.academicPeriod = period; saveToLocalStorage(); }
+        }
+
+        function handleLockToggle() {
+            const enteredCode = document.getElementById('secretCodeInput').value;
+            if (AppState.isLocked) {
+                const confirmation = prompt("Entrez le code secret pour déverrouiller :");
+                if (confirmation === (AppState.secretCode || '1234')) {
+                    AppState.isLocked = false;
+                    applyLockUI(false);
+                    showSuccessAnimation("🔓", "Déverrouillé", "Modifications autorisées.");
+                    saveToLocalStorage();
+                } else if (confirmation !== null) alert("Code incorrect.");
+            } else {
+                lockConfiguration();
+            }
+        }
+
+        function applyLockUI(locked) {
+            document.getElementById('schoolName').disabled = locked;
+            document.getElementById('schoolYear').disabled = locked;
+            document.getElementById('directorName').disabled = locked;
+            document.getElementById('censorName').disabled = locked;
+            document.getElementById('academicPeriod').disabled = locked;
+            document.getElementById('cycle1').disabled = locked;
+            document.getElementById('cycle2').disabled = locked;
+            document.getElementById('secretCodeInput').disabled = locked;
+            const btn = document.getElementById('btnLock');
+            btn.className = "btn btn-danger font-weight-bold";
+            btn.innerText = locked ? "Déverrouiller la configuration" : "Verrouiller la configuration";
+        }
+
+        function lockConfiguration() {
+            if (AppState.isLocked) return;
+            const name = document.getElementById('schoolName').value;
+            const year = document.getElementById('schoolYear').value;
+            const code = document.getElementById('secretCodeInput').value;
+            const cycles = [];
+            if (document.getElementById('cycle1').checked) cycles.push(document.getElementById('cycle1').value);
+            if (document.getElementById('cycle2').checked) cycles.push(document.getElementById('cycle2').value);
+            if (!name || !year || cycles.length === 0 || !code) { alert("Champs obligatoires manquants."); return; }
+            AppState.school.name = name;
+            AppState.school.year = year;
+            AppState.school.director = document.getElementById('directorName').value;
+            AppState.school.censor = document.getElementById('censorName').value;
+            AppState.school.academicPeriod = document.getElementById('academicPeriod').value;
+            AppState.school.cycles = cycles;
+            AppState.secretCode = code;
+            AppState.isLocked = true;
+            applyLockUI(true);
+            showSuccessAnimation("🔒", "Verrouillé", "Configuration enregistrée.");
+            saveToLocalStorage();
+            updateHiddenView();
+        }
+
+        function addPromotion() {
+            const count = parseInt(document.getElementById('classCount').value);
+            const promoName = document.getElementById('promoName').value;
+            const sections = document.getElementById('promoSections').value || '';
+            if (!promoName || isNaN(count) || count < 1) { alert("Champs invalides."); return; }
+            const classesArray = [];
+            const baseSuffix = sections.trim() !== '' ? sections.trim() : 'Général';
+            for (let i = 1; i <= count; i++) {
+                classesArray.push(sections.trim() !== '' ? `${baseSuffix}${i}` : `M${i}`);
+            }
+            AppState.promotions.push({ id: Date.now(), cycle: document.getElementById('promoCycle').value, name: promoName, sections: baseSuffix, classes: classesArray });
+            showSuccessAnimation("✓", "Succès", "Promotion ajoutée.");
+            document.getElementById('promoName').value = '';
+            document.getElementById('promoSections').value = '';
+            document.getElementById('classCount').value = '';
+            saveToLocalStorage();
+            updateHiddenView();
+        }
+
+        function deletePromotion(id) {
+            const confirmation = prompt("Code secret pour supprimer :");
+            if (confirmation === (AppState.secretCode || '1234')) {
+                AppState.promotions = AppState.promotions.filter(p => p.id !== id);
+                saveToLocalStorage();
+                updateHiddenView();
+            } else if (confirmation !== null) alert("Code incorrect.");
+        }
+
+        function showSuccessAnimation(icon, title, message) {
+            const overlay = document.getElementById('successOverlay');
+            document.getElementById('overlayIcon').innerText = icon;
+            document.getElementById('overlayTitle').innerText = title;
+            document.getElementById('overlayMessage').innerText = message;
+            overlay.classList.add('active');
+            setTimeout(() => { overlay.classList.remove('active'); }, 1800);
+        }
+
+        function toggleHiddenData() { const c = document.getElementById('hiddenDataContainer'); c.style.display = (c.style.display === 'block') ? 'none' : 'block'; }
+
+        function updateHiddenView() {
+            const renderDiv = document.getElementById('renderedData');
+            let html = `<h6>Établissement: ${AppState.school.name || 'Non défini'}</h6>`;
+            if (AppState.promotions.length > 0) {
+                html += `<ul class="list-group">`;
+                AppState.promotions.forEach(p => {
+                    html += `<li class="list-group-item d-flex justify-content-between"><strong>${p.name}</strong> <button class="btn btn-sm btn-danger" onclick="deletePromotion(${p.id})">Supprimer</button></li>`;
+                });
+                html += `</ul>`;
+            } else html += `<p>Aucune promotion.</p>`;
+            renderDiv.innerHTML = html;
+        }
+
+        function exportDataToJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(localStorage));
+            const a = document.createElement('a'); a.href = dataStr; a.download = "backup.json"; a.click();
+        }
+
+        function triggerImportClick() { document.getElementById('importJsonFile').click(); }
+
+        function importDataFromJSON(event) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = JSON.parse(e.target.result);
+                Object.keys(data).forEach(k => localStorage.setItem(k, data[k]));
+                loadFromLocalStorage();
+                showSuccessAnimation("📥", "Importé", "Données mises à jour.");
+            };
+            reader.readAsText(event.target.files[0]);
+        }
+
+        function clearConfigData() {
+            AppState = { isLocked: false, secretCode: '1234', school: {}, promotions: [], stats: AppState.stats };
+            saveToLocalStorage();
+            location.reload();
+        }
+
+        function clearStatisticsData() {
+            AppState.stats = {};
+            saveToLocalStorage();
+            showSuccessAnimation("❌", "Purgé", "Statistiques supprimées.");
+        }
+    </script>
+
+    <script>
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const btn = document.getElementById('installBtn');
+            if(btn) btn.style.display = 'block';
+        });
+
+        async function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') deferredPrompt = null;
+            }
+        }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academix Manager - Tableau de bord</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="logoapp.png">
+    <meta name="theme-color" content="#075E54">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Thème WhatsApp Messenger */
+            --wa-dark-green: #075E54;
+            --wa-teal: #128C7E;
+            --wa-light-green: #25D366;
+            --wa-bg: #ECE5DD;
+            --wa-text: #303030;
+            --wa-white: #ffffff;
+        }
+
+        body {
+            background-color: var(--wa-bg);
+            color: var(--wa-text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Navbar Styling */
+        .navbar-custom {
+            background-color: var(--wa-dark-green);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .navbar-custom .navbar-brand,
+        .navbar-custom .nav-link,
+        .navbar-custom .navbar-toggler-icon {
+            color: var(--wa-white);
+        }
+        .navbar-brand-sub {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            display: block;
+            margin-top: -5px;
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: var(--wa-white);
+            border-bottom: 2px solid var(--wa-bg);
+            font-weight: bold;
+            color: var(--wa-dark-green);
+        }
+        .stat-box {
+            background: var(--wa-dark-green);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        /* Bouton PWA Flottant */
+        #installBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            padding: 10px 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+                <img src="logoceg.png" alt="Logo" height="40" class="me-2" style="object-fit: contain;">
+                <div>
+                    <strong>Academix Manager</strong>
+                    <span class="navbar-brand-sub">Tableau de Bord</span>
+                </div>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link active" href="index.html">ACCUEIL</a></li>
+                    <li class="nav-item"><a class="nav-link" href="configuration.html">CONFIGURATION</a></li>
+                    <li class="nav-item"><a class="nav-link" href="saisie.html">SAISIE STATISTIQUES</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">TABLEAUX</a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="tableau1.html">Tableau Synoptique</a></li>
+                            <li><a class="dropdown-item" href="tableau2.html">Effectifs et Résultats</a></li>
+                            <li><a class="dropdown-item" href="tableau3.html">Statistiques fin de période</a></li>
+                            <li><a class="dropdown-item" href="tableau4.html">Récapitulatif des résultats</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="card p-4 text-center">
+            <h2 id="schoolTitle">Bienvenue sur Academix Manager</h2>
+            <p id="schoolYearText" class="text-muted"></p>
+        </div>
+
+        <div class="row" id="dashboardStats">
+            </div>
+
+        <div class="card mt-4">
+            <div class="card-header">Récapitulatif des Promotions</div>
+            <div class="card-body">
+                <div id="promoDetailsList">
+                    <p class="text-muted">Aucune donnée chargée.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button id="installBtn" onclick="installPWA()" style="display:none;" class="btn btn-warning btn-sm">Installer l'App</button>
+
+    <footer class="text-center py-3 mt-5 border-top bg-white text-muted small">
+        Concepteur : <strong>Atizoun Plateny AMOUSSOU</strong>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let AppState = { school: {}, promotions: [] };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const data = localStorage.getItem('ProSchool_AppState_Secure');
+            if (data) {
+                AppState = JSON.parse(data);
+                document.getElementById('schoolTitle').innerText = AppState.school.name || "Configuration requise";
+                document.getElementById('schoolYearText').innerText = "Année Scolaire : " + (AppState.school.year || "Non définie");
+                renderDashboard();
+            }
+        });
+
+        function renderDashboard() {
+            const statsContainer = document.getElementById('dashboardStats');
+            const promoList = document.getElementById('promoDetailsList');
+            
+            let totalClasses = 0;
+            AppState.promotions.forEach(p => totalClasses += p.classes.length);
+
+            statsContainer.innerHTML = `
+                <div class="col-md-6">
+                    <div class="stat-box">
+                        <h3>${AppState.promotions.length}</h3>
+                        <p>Promotions configurées</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="stat-box" style="background: var(--wa-teal);">
+                        <h3>${totalClasses}</h3>
+                        <p>Total des classes</p>
+                    </div>
+                </div>
+            `;
+
+            if (AppState.promotions.length > 0) {
+                let html = `<ul class="list-group">`;
+                AppState.promotions.forEach(p => {
+                    html += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>${p.name}</strong>
+                            <span class="badge bg-success rounded-pill">${p.classes.length} classes</span>
+                        </li>`;
+                });
+                html += `</ul>`;
+                promoList.innerHTML = html;
+            }
+        }
+    </script>
+
+    <script>
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const btn = document.getElementById('installBtn');
+        if(btn) btn.style.display = 'block';
+      });
+
+      async function installPWA() {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          if (outcome === 'accepted') deferredPrompt = null;
+        }
+      }
+
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+      }
+    </script>
+</body>
+</html>

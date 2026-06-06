@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academix Manager - Tableau Synoptique</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="logoapp.png">
+    <meta name="theme-color" content="#075E54">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Thème WhatsApp Messenger */
+            --wa-dark-green: #075E54;
+            --wa-teal: #128C7E;
+            --wa-light-green: #25D366;
+            --wa-bg: #ECE5DD;
+            --wa-text: #303030;
+            --wa-white: #ffffff;
+        }
+
+        body {
+            background-color: var(--wa-bg);
+            color: var(--wa-text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Navbar Styling */
+        .navbar-custom {
+            background-color: var(--wa-dark-green);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .navbar-custom .navbar-brand,
+        .navbar-custom .nav-link,
+        .navbar-custom .navbar-toggler-icon {
+            color: var(--wa-white);
+        }
+        .navbar-brand-sub {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            display: block;
+            margin-top: -5px;
+        }
+
+        /* Custom Buttons */
+        .btn-wa {
+            background-color: var(--wa-light-green);
+            color: var(--wa-white);
+            border: none;
+            font-weight: 500;
+        }
+        .btn-wa:hover {
+            background-color: var(--wa-teal);
+            color: var(--wa-white);
+        }
+        .btn-wa-dark {
+            background-color: var(--wa-teal);
+            color: var(--wa-white);
+        }
+
+        /* Style ciblé pour la saisie utilisateur */
+        .form-control, .form-select {
+            color: #0b3c5d !important;
+            font-weight: bold !important;
+            font-size: 1.1rem !important;
+        }
+
+        select option {
+            font-weight: bold !important;
+            color: #0b3c5d !important;
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: var(--wa-white);
+            border-bottom: 2px solid var(--wa-bg);
+            font-weight: bold;
+            color: var(--wa-dark-green);
+        }
+
+        .text-garcon-label { color: #00a8ff !important; font-weight: bold; }
+        .text-fille-label { color: #e84118 !important; font-weight: bold; }
+        .text-total-label { color: #000000 !important; font-weight: bold; }
+
+        .table-responsive-custom {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: 700px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+        }
+        
+        .table-responsive-custom table thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: inset 0 -2px 0 #cbd5e1;
+        }
+
+        .custom-printed-table {
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+            width: 100% !important;
+            border-radius: 8px !important;
+            overflow: hidden !important;
+            border: 1px solid #cbd5e1 !important;
+        }
+        .custom-printed-table th {
+            background-color: #ebedef !important;
+            color: #1e293b !important;
+            font-weight: 700 !important;
+            text-transform: uppercase;
+            font-size: 0.75rem !important;
+            border: 1px solid #cbd5e1 !important;
+            padding: 6px 4px !important;
+        }
+        .custom-printed-table td {
+            border: 1px solid #cbd5e1 !important;
+            padding: 6px 4px !important;
+        }
+        .custom-printed-table tbody tr:nth-child(even) {
+            background-color: #f4f6f7 !important;
+        }
+        .custom-printed-table tbody tr:nth-child(odd) {
+            background-color: #ffffff !important;
+        }
+        .custom-printed-table tbody tr:hover {
+            background-color: #eaeded !important;
+        }
+
+        .row-subtotal-promo {
+            background-color: #e8f4fd !important;
+            font-weight: bold !important;
+        }
+        .row-total-cycle {
+            background-color: #e8f8f5 !important;
+            font-weight: bold !important;
+        }
+        .row-total-establishment {
+            background-color: #fef9e7 !important;
+            font-weight: bold !important;
+            border-top: 2px solid #94a3b8 !important;
+            border-bottom: 2px solid #94a3b8 !important;
+        }
+
+        /* Bloc d'en-tête d'impression masqué sur écran */
+        .print-header-clean {
+            display: none;
+        }
+
+        /* Bloc de pied de page d'impression masqué sur écran */
+        .print-footer-clean {
+            display: none;
+        }
+
+        /* Bouton flottant */
+        #installBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        @media print {
+            @page {
+                size: landscape;
+                margin: 10mm 10mm 15mm 10mm;
+            }
+            body {
+                background-color: #ffffff;
+                color: #000000;
+            }
+            .navbar, .btn, .no-print, footer, .print-header, #installBtn {
+                display: none !important;
+            }
+            .card {
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+            }
+            .card-body {
+                padding: 0 !important;
+            }
+            
+            /* En-tête Pro raffiné sur deux lignes strictement */
+            .print-header-clean {
+                display: flex !important;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+                border-bottom: 2px solid #000000;
+                padding-bottom: 5px;
+                margin-bottom: 15px;
+            }
+            .print-header-clean .left-side {
+                text-align: left;
+            }
+            .print-header-clean .right-side {
+                text-align: right;
+            }
+            .print-header-clean h1 {
+                font-size: 1.3rem !important;
+                margin: 0 !important;
+                font-weight: bold !important;
+                text-transform: uppercase;
+            }
+            .print-header-clean h2 {
+                font-size: 1.1rem !important;
+                margin: 0 !important;
+                font-weight: bold !important;
+                color: #dc3545 !important;
+            }
+            .print-header-clean p {
+                font-size: 1rem !important;
+                margin: 0 !important;
+                font-weight: 600 !important;
+            }
+
+            .table-responsive-custom {
+                overflow: visible !important;
+                max-height: none !important;
+                border: none !important;
+                border-radius: 0 !important;
+            }
+            
+            /* Répétition automatique de l'en-tête sur chaque page */
+            .custom-printed-table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                border-spacing: 0 !important;
+                display: table !important;
+            }
+            .custom-printed-table thead {
+                display: table-header-group !important;
+                position: static !important;
+            }
+            .custom-printed-table tr {
+                page-break-inside: avoid !important;
+            }
+
+            .custom-printed-table th, .custom-printed-table td {
+                border: 1px solid #000000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .custom-printed-table tbody tr:nth-child(even) {
+                background-color: #f2f2f2 !important;
+            }
+            .row-subtotal-promo { background-color: #e8f4fd !important; }
+            .row-total-cycle { background-color: #e8f8f5 !important; }
+            .row-total-establishment { background-color: #fef9e7 !important; }
+
+            .signatures-block {
+                page-break-inside: avoid !important;
+                margin-top: 30px !important;
+            }
+
+            /* Pied de page d'impression positionné en bas de page */
+            .print-footer-clean {
+                display: block !important;
+                position: fixed;
+                bottom: -5mm;
+                left: 0;
+                right: 0;
+                text-align: center;
+                font-size: 0.75rem !important;
+                border-top: 1px solid #cbd5e1;
+                padding-top: 4px;
+                font-weight: 500;
+                color: #475569 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+                <img src="logoceg.png" alt="Logo" height="40" class="me-2" style="object-fit: contain;">
+                <div>
+                    <strong>Academix Manager</strong>
+                    <span id="pageHeaderTitle" class="navbar-brand-sub">Tableau Synoptique Général</span>
+                </div>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" style="border-color: white;">
+                <span class="navbar-toggler-icon" style="background-image: url('data:image/svg+xml;charset=utf8,%3Csvg viewBox=%220 0 30 30%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath stroke=%22rgba%28255, 255, 255, 1%29%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-miterlimit=%2210%22 d=%22M4 7h22M4 15h22M4 23h22%22/%3E%3C/svg%3E');"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link nav-home" href="index.html">ACCUEIL</a></li>
+                    <li class="nav-item"><a class="nav-link nav-config" href="configuration.html">CONFIGURATION</a></li>
+                    <li class="nav-item"><a class="nav-link nav-saisie" href="saisie.html">SAISIE STATISTIQUES</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle nav-tableaux active fw-bold" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            TABLEAUX & RÉSULTATS
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item nav-tab1 active fw-bold" href="tableau1.html">Tableau Synoptique</a></li>
+                            <li><a class="dropdown-item nav-tab2" href="tableau2.html">Effectifs et Résultats</a></li>
+                            <li><a class="dropdown-item nav-tab3" href="tableau3.html">Statistiques fin de période</a></li>
+                            <li><a class="dropdown-item nav-tab4" href="tableau4.html">Récapitulatif des résultats</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <button id="installBtn" onclick="installPWA()" style="display:none;" class="btn btn-warning btn-sm">Installer l'App</button>
+
+    <div class="container mt-4">
+        
+        <div class="card">
+            <div class="card-body">
+                <div class="text-center mb-4 no-print">
+                    <h1 id="displaySchoolName" class="fw-bold text-uppercase" style="color: var(--wa-dark-green); font-size: 2.5rem;">CEG 1 BEMBÈRÈKÈ</h1>
+                    <h3 id="displaySchoolYear" class="text-secondary fw-semibold">Année Scolaire : 2025-2026</h3>
+                </div>
+
+                <div class="row g-3 mb-4 no-print">
+                    <div class="col-md-6 mx-auto">
+                        <label class="form-label fw-bold">Période / Semestre</label>
+                        <select id="selectSemestre" class="form-select" onchange="refreshTableau()">
+                        </select>
+                    </div>
+                </div>
+
+                <hr class="my-4 no-print">
+
+                <div class="card" id="summaryTableContainer">
+                    <div class="card-header bg-white py-2 border-0">
+                        
+                        <!-- En-tête Pro d'impression raffiné sur 2 lignes strictement -->
+                        <div class="print-header-clean">
+                            <div class="left-side">
+                                <h1 id="cleanPrintSchoolName">CEG 1 BEMBÈRÈKÈ</h1>
+                                <p id="cleanPrintSchoolYear">Année Scolaire : 2025-2026</p>
+                            </div>
+                            <div class="right-side">
+                                <h2 id="cleanPrintTableTitle">TABLEAU 1 : SYNOPTIQUE DES RÉSULTATS</h2>
+                            </div>
+                        </div>
+
+                        <div class="text-center my-3 print-header">
+                            <h4 class="fw-bold text-uppercase mb-1" id="printSchoolName">CEG 1 BEMBÈRÈKÈ</h4>
+                            <p class="text-muted fw-semibold mb-2" id="printSchoolYear">Année Scolaire : 2025-2026</p>
+                            <h5 class="text-danger fw-bold fs-5 border-bottom pb-2" id="summaryTableTitle">TABLEAU 1 : SYNOPTIQUE DES RÉSULTATS</h5>
+                        </div>
+                        
+                        <div class="table-responsive-custom mt-2">
+                            <table class="table custom-printed-table table-sm text-center align-middle mb-0 bg-white" style="font-size: 0.8rem;" id="mainStatisticsTable">
+                                <thead id="tableHeaderContainer">
+                                </thead>
+                                <tbody id="tableBodyContainer">
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="row mt-5 text-center small signatures-block">
+                            <div class="col-4">
+                                <p>Le Censeur</p>
+                                <br><br>
+                                <strong id="printCensorName">-</strong>
+                            </div>
+                            <div class="col-4"></div>
+                            <div class="col-4">
+                                <p>Le Directeur</p>
+                                <br><br>
+                                <strong id="printDirectorName">-</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-end mt-4 no-print">
+                    <button type="button" class="btn btn-wa px-5 py-2 fs-5 shadow-sm" onclick="window.print()">
+                        🖨️ Imprimer ce document
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Pied de page d'impression dédié -->
+    <div class="print-footer-clean">
+        Logiciel ACADEMIX MANAGER conçu par ATIZOUN DIGICOM / atizoun@gmail.com
+    </div>
+
+    <footer class="text-center py-3 mt-5 border-top bg-white text-muted small position-relative bottom-0 start-0 w-100 no-print">
+        Concepteur : <strong>Atizoun Plateny AMOUSSOU</strong> | Email : <a href="mailto:atizoun@gmail.com">atizoun@gmail.com</a> | Tél : 01 97 74 40 35
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        /**
+         * ÉTAT GLOBAL DE L'APPLICATION
+         */
+        let AppState = {
+            isLocked: false,
+            secretCode: '1234',
+            school: {
+                name: '',
+                year: '',
+                director: '',
+                censor: '',
+                academicPeriod: 'Trimestres',
+                cycles: []
+            },
+            promotions: [],
+            stats: {}
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+            initializeInterfaceMetaData();
+            populatePeriods();
+            refreshTableau();
+        });
+
+        function saveToLocalStorage() {
+            localStorage.setItem('ProSchool_AppState_Secure', JSON.stringify(AppState));
+        }
+
+        function loadFromLocalStorage() {
+            const data = localStorage.getItem('ProSchool_AppState_Secure');
+            if (data) {
+                try {
+                    AppState = JSON.parse(data);
+                    if (!AppState.stats) AppState.stats = {};
+                } catch (e) {
+                    console.error("Erreur lors de la lecture du stockage local", e);
+                }
+            }
+        }
+
+        function populatePeriods() {
+            const selectSemestre = document.getElementById('selectSemestre');
+            if (!selectSemestre) return;
+
+            selectSemestre.innerHTML = '';
+            const periodType = AppState.school.academicPeriod || 'Trimestres';
+
+            if (periodType === 'Semestres') {
+                selectSemestre.innerHTML = `
+                    <option value="1er Semestre">1er Semestre</option>
+                    <option value="2nd Semestre">2nd Semestre</option>
+                    <option value="Annuel">Annuel</option>
+                `;
+            } else {
+                selectSemestre.innerHTML = `
+                    <option value="1er Trimestre">1er Trimestre</option>
+                    <option value="2nd Trimestre">2nd Trimestre</option>
+                    <option value="3ème Trimestre">3ème Trimestre</option>
+                    <option value="Annuel">Annuel</option>
+                `;
+            }
+        }
+
+        function initializeInterfaceMetaData() {
+            if (AppState.school.name) {
+                document.getElementById('displaySchoolName').innerText = AppState.school.name;
+                document.getElementById('printSchoolName').innerText = AppState.school.name;
+                document.getElementById('cleanPrintSchoolName').innerText = AppState.school.name;
+            }
+            if (AppState.school.year) {
+                document.getElementById('displaySchoolYear').innerText = "Année Scolaire : " + AppState.school.year;
+                document.getElementById('printSchoolYear').innerText = "Année Scolaire : " + AppState.school.year;
+                document.getElementById('cleanPrintSchoolYear').innerText = "Année Scolaire : " + AppState.school.year;
+            }
+            if (AppState.school.director) {
+                document.getElementById('printDirectorName').innerText = AppState.school.director;
+            }
+            if (AppState.school.censor) {
+                document.getElementById('printCensorName').innerText = AppState.school.censor;
+            }
+        }
+
+        function normalizeCycleValue(cycle) {
+            if (!cycle) return '';
+            return cycle.trim().toLowerCase().replace(/\s+/g, '');
+        }
+
+        function refreshTableau() {
+            const semestre = document.getElementById('selectSemestre').value;
+            const titleEl = document.getElementById('summaryTableTitle');
+            titleEl.innerText = `TABLEAU 1 : SYNOPTIQUE DES RÉSULTATS (${semestre})`;
+            
+            const cleanTitleEl = document.getElementById('cleanPrintTableTitle');
+            cleanTitleEl.innerText = `TABLEAU 1 : SYNOPTIQUE DES RÉSULTATS (${semestre})`;
+            
+            loadStatsForEstablishment();
+        }
+
+        function loadStatsForEstablishment() {
+            const schoolYear = AppState.school.year || '2025-2026';
+            const semestre = document.getElementById('selectSemestre').value;
+            
+            const headerContainer = document.getElementById('tableHeaderContainer');
+            const bodyContainer = document.getElementById('tableBodyContainer');
+
+            headerContainer.innerHTML = `
+                <tr>
+                    <th rowspan="3" class="align-middle">CLASSES</th>
+                    <th colspan="3">EFFECTIF</th>
+                    <th colspan="9">NON CLASSÉS</th>
+                    <th colspan="3">CLASSÉS</th>
+                    <th colspan="3">M &lt; 6,50</th>
+                    <th colspan="3">6,5 &le; M &lt; 7,5</th>
+                    <th colspan="3">7,5 &le; M &lt; 9</th>
+                    <th colspan="3">9 &le; M &lt; 10</th>
+                    <th colspan="3">10 &le; M &lt; 11</th>
+                    <th colspan="3">11 &le; M &lt; 12</th>
+                    <th colspan="3">12 &le; M &lt; 14</th>
+                    <th colspan="3">14 &le; M &lt; 16</th>
+                    <th colspan="3">M &ge; 16</th>
+                    <th colspan="3">NB MOYENNES</th>
+                </tr>
+                <tr>
+                    <th rowspan="2">G</th><th rowspan="2">F</th><th rowspan="2">T</th>
+                    <th colspan="3">MALADES</th><th colspan="3">ABANDONS</th><th colspan="3" class="fw-bold">TOTAL NC</th>
+                    <th rowspan="2">G</th><th rowspan="2">F</th><th rowspan="2">T</th>
+                    <th rowspan="2">G</th><th rowspan="2">F</th><th rowspan="2">T</th>
+                    <th rowspan="2">G</th><th rowspan="2">F</th><th rowspan="2">T</th>
+                    <th rowspan="2">G</th><th rowspan="2">F</th><th rowspan="2">T</th>
+                    <th rowspan="2">G</th><th rowspan="2">F</th><th rowspan="2">T</th>
+                    <th rowspan="2">G</th><th rowspan="2">F</th><th rowspan="2">T</th>
+                    <th rowspan="2">G</th><th rowspan="2">F</th><th rowspan="2">T</th>
+                    <th rowspan="2">G</th><th rowspan="2">F</th><th rowspan="2">T</th>
+                    <th rowspan="2">G</th><th rowspan="2">F</th><th rowspan="2">T</th>
+                    <th rowspan="2">G</th><th rowspan="2">F</th><th rowspan="2">T</th>
+                    <th rowspan="2">G</th><th rowspan="2">F</th><th rowspan="2">T</th>
+                </tr>
+                <tr>
+                    <th>G</th><th>F</th><th>T</th>
+                    <th>G</th><th>F</th><th>T</th>
+                    <th class="fw-bold">G</th><th class="fw-bold">F</th><th class="fw-bold">T</th>
+                </tr>
+            `;
+            bodyContainer.innerHTML = "";
+
+            const tranches = ['inf650', '650_750', '750_900', '900_1000', '1000_1100', '1100_1200', '1200_1400', '1400_1600', 'sup1600'];
+            const tranchesMoy = ['1000_1100', '1100_1200', '1200_1400', '1400_1600', 'sup1600'];
+
+            let globalTotals = {
+                eff_g: 0, eff_f: 0,
+                class_g: 0, class_f: 0,
+                mal_g: 0, mal_f: 0,
+                aba_g: 0, aba_f: 0,
+                moy_g: 0, moy_f: 0
+            };
+            tranches.forEach(t => {
+                globalTotals[`${t}_g`] = 0;
+                globalTotals[`${t}_f`] = 0;
+            });
+
+            let promotionTotals = {};
+            let cycleTotals = {};
+            let dataFound = false;
+
+            const getInt = (val) => parseInt(val) || 0;
+
+            if (AppState.stats) {
+                Object.keys(AppState.stats).forEach(key => {
+                    if (key.startsWith(`${schoolYear}_${semestre}_`)) {
+                        const parts = key.split('_');
+                        const currentCycleRaw = parts[2] ? parts[2].trim() : '';
+                        const currentClassName = parts[3] ? parts[3].trim() : 'Classe';
+                        
+                        let currentPromo = currentClassName.split(' - ')[0] || 'Inconnue';
+                        let currentCycle = '';
+                        
+                        if (AppState.promotions) {
+                            const foundPromo = AppState.promotions.find(p => p.name === currentPromo);
+                            if (foundPromo) {
+                                currentCycle = foundPromo.cycle || '';
+                            }
+                        }
+                        
+                        dataFound = true;
+                        const s = AppState.stats[key];
+
+                        let class_class_g = 0;
+                        let class_class_f = 0;
+                        let class_moy_g = 0;
+                        let class_moy_f = 0;
+
+                        const mg = getInt(s.malades_g);
+                        const mf = getInt(s.malades_f);
+                        const ag = getInt(s.abandons_g);
+                        const af = getInt(s.abandons_f);
+                        
+                        tranches.forEach(t => {
+                            const tg = getInt(s[`${t}_g`]);
+                            const tf = getInt(s[`${t}_f`]);
+                            class_class_g += tg;
+                            class_class_f += tf;
+                            globalTotals[`${t}_g`] += tg;
+                            globalTotals[`${t}_f`] += tf;
+                        });
+
+                        tranchesMoy.forEach(t => {
+                            class_moy_g += getInt(s[`${t}_g`]);
+                            class_moy_f += getInt(s[`${t}_f`]);
+                        });
+
+                        let class_eff_g = class_class_g + mg + ag;
+                        let class_eff_f = class_class_f + mf + af;
+                        let nc_total_g = mg + ag;
+                        let nc_total_f = mf + af;
+
+                        globalTotals.mal_g += mg;
+                        globalTotals.mal_f += mf;
+                        globalTotals.aba_g += ag;
+                        globalTotals.aba_f += af;
+                        globalTotals.class_g += class_class_g;
+                        globalTotals.class_f += class_class_f;
+                        globalTotals.moy_g += class_moy_g;
+                        globalTotals.moy_f += class_moy_f;
+
+                        const initStructure = (obj, pKey) => {
+                            if (!obj[pKey]) {
+                                obj[pKey] = { mal_g:0, mal_f:0, aba_g:0, aba_f:0, class_g:0, class_f:0, moy_g:0, moy_f:0 };
+                                tranches.forEach(t => { obj[pKey][`${t}_g`] = 0; obj[pKey][`${t}_f`] = 0; });
+                            }
+                        };
+                        initStructure(promotionTotals, currentPromo);
+                        initStructure(cycleTotals, currentCycle);
+
+                        [promotionTotals[currentPromo], cycleTotals[currentCycle]].forEach(tot => {
+                            tot.mal_g += mg; tot.mal_f += mf;
+                            tot.aba_g += ag; tot.aba_f += af;
+                            tot.class_g += class_class_g; tot.class_f += class_class_f;
+                            tot.moy_g += class_moy_g; tot.moy_f += class_moy_f;
+                            tranches.forEach(t => {
+                                tot[`${t}_g`] += getInt(s[`${t}_g`]);
+                                tot[`${t}_f`] += getInt(s[`${t}_f`]);
+                            });
+                        });
+
+                        let tranchesHtml = '';
+                        tranches.forEach((t) => {
+                            const tg = getInt(s[`${t}_g`]);
+                            const tf = getInt(s[`${t}_f`]);
+                            tranchesHtml += `
+                                <td class="text-garcon-label">${tg}</td>
+                                <td class="text-fille-label">${tf}</td>
+                                <td class="text-total-label fw-bold">${tg + tf}</td>
+                            `;
+                        });
+
+                        bodyContainer.innerHTML += `
+                            <tr data-promo="${currentPromo}" data-cycle="${currentCycle}">
+                                <td class="fw-bold bg-light align-middle text-dark border-end">${currentClassName}</td>
+                                <td class="text-garcon-label">${class_eff_g}</td>
+                                <td class="text-fille-label">${class_eff_f}</td>
+                                <td class="text-total-label fw-bold bg-light">${class_eff_g + class_eff_f}</td>
+                                
+                                <td class="text-garcon-label">${mg}</td>
+                                <td class="text-fille-label">${mf}</td>
+                                <td class="text-total-label fw-bold bg-light">${mg + mf}</td>
+                                <td class="text-garcon-label">${ag}</td>
+                                <td class="text-fille-label">${af}</td>
+                                <td class="text-total-label fw-bold bg-light">${ag + af}</td>
+                                <td class="text-garcon-label fw-bold" style="color: #616161 !important;">${nc_total_g}</td>
+                                <td class="text-fille-label fw-bold" style="color: #616161 !important;">${nc_total_f}</td>
+                                <td class="text-total-label fw-bold bg-light">${nc_total_g + nc_total_f}</td>
+                                
+                                <td class="text-garcon-label">${class_class_g}</td>
+                                <td class="text-fille-label">${class_class_f}</td>
+                                <td class="text-total-label fw-bold bg-light">${class_class_g + class_class_f}</td>
+                                
+                                ${tranchesHtml}
+                                
+                                <td class="text-garcon-label">${class_moy_g}</td>
+                                <td class="text-fille-label">${class_moy_f}</td>
+                                <td class="text-total-label fw-bold bg-light">${class_moy_g + class_moy_f}</td>
+                            </tr>
+                        `;
+                    }
+                });
+            }
+
+            if (dataFound) {
+                const rows = Array.from(bodyContainer.querySelectorAll('tr'));
+                let lastPromo = '';
+                let lastCycle = '';
+
+                const createSubTotalRow = (label, totalsObj, isCycle = false) => {
+                    let tranchesHtml = '';
+                    tranches.forEach((t) => {
+                        const tg = totalsObj[`${t}_g`] || 0;
+                        const tf = totalsObj[`${t}_f`] || 0;
+                        tranchesHtml += `<td class="text-garcon-label">${tg}</td><td class="text-fille-label">${tf}</td><td class="text-total-label fw-bold">${tg + tf}</td>`;
+                    });
+                    const eg = (totalsObj.class_g || 0) + (totalsObj.mal_g || 0) + (totalsObj.aba_g || 0);
+                    const ef = (totalsObj.class_f || 0) + (totalsObj.mal_f || 0) + (totalsObj.aba_f || 0);
+                    const ncg = (totalsObj.mal_g || 0) + (totalsObj.aba_g || 0);
+                    const ncf = (totalsObj.mal_f || 0) + (totalsObj.aba_f || 0);
+                    const rowClass = isCycle ? "row-total-cycle" : "row-subtotal-promo";
+
+                    return `
+                        <tr class="${rowClass} text-dark">
+                            <td class="align-middle text-uppercase text-start ps-2">${label}</td>
+                            <td class="text-garcon-label">${eg}</td><td class="text-fille-label">${ef}</td><td class="text-total-label fw-bold">${eg + ef}</td>
+                            <td class="text-garcon-label">${totalsObj.mal_g || 0}</td><td class="text-fille-label">${totalsObj.mal_f || 0}</td><td class="text-total-label fw-bold">${(totalsObj.mal_g || 0) + (totalsObj.mal_f || 0)}</td>
+                            <td class="text-garcon-label">${totalsObj.aba_g || 0}</td><td class="text-fille-label">${totalsObj.aba_f || 0}</td><td class="text-total-label fw-bold">${(totalsObj.aba_g || 0) + (totalsObj.aba_f || 0)}</td>
+                            <td class="text-garcon-label fw-bold">${ncg}</td><td class="text-fille-label fw-bold">${ncf}</td><td class="text-total-label fw-bold">${ncg + ncf}</td>
+                            <td class="text-garcon-label">${totalsObj.class_g || 0}</td><td class="text-fille-label">${totalsObj.class_f || 0}</td><td class="text-total-label fw-bold">${(totalsObj.class_g || 0) + (totalsObj.class_f || 0)}</td>
+                            ${tranchesHtml}
+                            <td class="text-garcon-label">${totalsObj.moy_g || 0}</td><td class="text-fille-label">${totalsObj.moy_f || 0}</td><td class="text-total-label fw-bold">${(totalsObj.moy_g || 0) + (totalsObj.moy_f || 0)}</td>
+                        </tr>`;
+                };
+
+                bodyContainer.innerHTML = "";
+                rows.forEach((row, idx) => {
+                    const cPromo = row.getAttribute('data-promo');
+                    const cCycle = row.getAttribute('data-cycle');
+
+                    if (idx > 0 && cPromo !== lastPromo && promotionTotals[lastPromo]) {
+                        bodyContainer.innerHTML += createSubTotalRow(`S/TOTAL PROMO ${lastPromo}`, promotionTotals[lastPromo], false);
+                    }
+                    if (idx > 0 && cCycle !== lastCycle && cycleTotals[lastCycle]) {
+                        bodyContainer.innerHTML += createSubTotalRow(`S/TOTAL CYCLE ${lastCycle.toUpperCase()}`, cycleTotals[lastCycle], true);
+                    }
+
+                    bodyContainer.appendChild(row);
+                    lastPromo = cPromo;
+                    lastCycle = cCycle;
+                });
+
+                if (promotionTotals[lastPromo]) {
+                    bodyContainer.innerHTML += createSubTotalRow(`S/TOTAL PROMO ${lastPromo}`, promotionTotals[lastPromo], false);
+                }
+                if (cycleTotals[lastCycle]) {
+                    bodyContainer.innerHTML += createSubTotalRow(`S/TOTAL CYCLE ${lastCycle.toUpperCase()}`, cycleTotals[lastCycle], true);
+                }
+
+                globalTotals.eff_g = globalTotals.class_g + globalTotals.mal_g + globalTotals.aba_g;
+                globalTotals.eff_f = globalTotals.class_f + globalTotals.mal_f + globalTotals.aba_f;
+                let global_nc_g = globalTotals.mal_g + globalTotals.aba_g;
+                let global_nc_f = globalTotals.mal_f + globalTotals.aba_f;
+
+                let globalTranchesHtml = '';
+                tranches.forEach((t) => {
+                    const tg = globalTotals[`${t}_g`];
+                    const tf = globalTotals[`${t}_f`];
+                    globalTranchesHtml += `<td class="text-garcon-label">${tg}</td><td class="text-fille-label">${tf}</td><td class="text-total-label fw-bold">${tg + tf}</td>`;
+                });
+
+                bodyContainer.innerHTML += `
+                    <tr class="row-total-establishment text-dark">
+                        <td class="align-middle text-uppercase">TOTAL ÉTABLISSEMENT</td>
+                        <td class="text-garcon-label">${globalTotals.eff_g}</td>
+                        <td class="text-fille-label">${globalTotals.eff_f}</td>
+                        <td class="text-total-label fw-bold">${globalTotals.eff_g + globalTotals.eff_f}</td>
+                        <td class="text-garcon-label">${globalTotals.mal_g}</td>
+                        <td class="text-fille-label">${globalTotals.mal_f}</td>
+                        <td class="text-total-label fw-bold">${globalTotals.mal_g + globalTotals.mal_f}</td>
+                        <td class="text-garcon-label">${globalTotals.aba_g}</td>
+                        <td class="text-fille-label">${globalTotals.aba_f}</td>
+                        <td class="text-total-label fw-bold">${globalTotals.aba_g + globalTotals.aba_f}</td>
+                        <td class="text-garcon-label fw-bold">${global_nc_g}</td>
+                        <td class="text-fille-label fw-bold">${global_nc_f}</td>
+                        <td class="text-total-label fw-bold">${global_nc_g + global_nc_f}</td>
+                        <td class="text-garcon-label">${globalTotals.class_g}</td>
+                        <td class="text-fille-label">${globalTotals.class_f}</td>
+                        <td class="text-total-label fw-bold">${globalTotals.class_g + globalTotals.class_f}</td>
+                        ${globalTranchesHtml}
+                        <td class="text-garcon-label">${globalTotals.moy_g}</td>
+                        <td class="text-fille-label">${globalTotals.moy_f}</td>
+                        <td class="text-total-label fw-bold">${globalTotals.moy_g + globalTotals.moy_f}</td>
+                    </tr>
+                `;
+            } else {
+                bodyContainer.innerHTML = `<tr><td colspan="53" class="text-muted py-3">Aucune donnée trouvée pour cette période.</td></tr>`;
+            }
+        }
+    </script>
+    <script>
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // Affiche un bouton d'installation personnalisé si présent
+            const btn = document.getElementById('installBtn');
+            if(btn) btn.style.display = 'block';
+        });
+
+        async function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') deferredPrompt = null;
+            }
+        }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
