@@ -176,6 +176,14 @@
             right: 20px;
             z-index: 9999;
         }
+
+        /* Style isolé pour le bouton de contrôle vocal */
+        #audioToggleBtn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 9999;
+        }
     </style>
 </head>
 <body>
@@ -189,6 +197,8 @@
     </div>
 
     <button id="installBtn" onclick="installPWA()" style="display:none;" class="btn btn-warning shadow-lg">Installer l'App</button>
+    
+    <button id="audioToggleBtn" onclick="toggleAudioSpeech()" class="btn btn-secondary shadow-lg fw-bold">🔊 Lecture Vocale : OFF</button>
 
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
         <div class="container-fluid">
@@ -651,6 +661,9 @@
             stats: {}       // Nouvelle branche persistante pour stocker les statistiques par contexte
         };
 
+        // État de la fonctionnalité de lecture audio
+        let isAudioSpeechEnabled = false;
+
         // Chargement initial au démarrage
         window.addEventListener('DOMContentLoaded', () => {
             loadFromLocalStorage();
@@ -659,6 +672,7 @@
             populateCycles();
             resetSummaryTable();
             setupNumericConstraints();
+            setupAudioSpeechListeners(); // Initialisation des écouteurs de synthèse vocale
         });
 
         // Logique unifiée de normalisation équivalente à normalizeCycle()
@@ -1207,6 +1221,84 @@
             
             // Déclenchement de l'animation d'overlay paramétrée
             showSuccessAnimation('✓', 'Enregistrement Effectué', `Données sauvegardées en mémoire avec succès.`);
+        }
+
+        // ==========================================
+        // LOGIQUE ISOLÉE DE LECTURE VOCALE AUDIO
+        // ==========================================
+        function toggleAudioSpeech() {
+            isAudioSpeechEnabled = !isAudioSpeechEnabled;
+            const btn = document.getElementById('audioToggleBtn');
+            if (isAudioSpeechEnabled) {
+                btn.innerText = "🔊 Lecture Vocale : ON";
+                btn.className = "btn btn-success shadow-lg fw-bold";
+                speakText("Lecture vocale activée");
+            } else {
+                btn.innerText = "🔊 Lecture Vocale : OFF";
+                btn.className = "btn btn-secondary shadow-lg fw-bold";
+                if (window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                }
+            }
+        }
+
+        function speakText(text) {
+            if (!isAudioSpeechEnabled || !window.speechSynthesis) return;
+            // Annule les lectures en cours pour éviter les superpositions denses
+            window.speechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'fr-FR';
+            utterance.rate = 1.1; // Vitesse légèrement ajustée pour la saisie fluide
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function setupAudioSpeechListeners() {
+            const form = document.getElementById('statsForm');
+            if (!form) return;
+
+            // Capte les entrées sur tous les inputs du formulaire de saisie
+            form.addEventListener('input', (event) => {
+                if (!isAudioSpeechEnabled) return;
+                
+                const target = event.target;
+                if (target && target.tagName === 'INPUT') {
+                    const value = target.value.trim();
+                    if (value === '') return;
+
+                    // Traitement différencié si c'est un nombre ou du texte
+                    if (target.type === 'number') {
+                        speakText(value);
+                    } else if (target.type === 'text') {
+                        // Pour les noms, on lit le dernier caractère ou le mot selon la fluidité recherchée
+                        const lastChar = value.slice(-1);
+                        if (lastChar === ' ') {
+                            speakText(value); // Lit le bloc complet au premier espace
+                        } else {
+                            speakText(lastChar); // Épèle au fur et à mesure
+                        }
+                    }
+                }
+            });
+
+            // Ajout d'une confirmation de valeur finale lorsque l'utilisateur quitte le champ (blur)
+            form.addEventListener('focusout', (event) => {
+                if (!isAudioSpeechEnabled) return;
+                
+                const target = event.target;
+                if (target && target.tagName === 'INPUT' && target.value.trim() !== '') {
+                    // Récupération du label ou de la section pour contextualiser la valeur validée
+                    let contextLabel = "";
+                    const parentContainer = target.closest('.bg-light, .border');
+                    if (parentContainer) {
+                        const header = parentContainer.querySelector('h5');
+                        if (header) contextLabel = header.innerText + " ";
+                    }
+                    
+                    const subLabel = target.previousElementSibling ? target.previousElementSibling.innerText : "";
+                    speakText(`${contextLabel} ${subLabel} : ${target.value}`);
+                }
+            });
         }
     </script>
     <script>
