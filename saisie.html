@@ -673,6 +673,7 @@
             resetSummaryTable();
             setupNumericConstraints();
             setupAudioSpeechListeners(); // Initialisation des écouteurs de synthèse vocale
+            setupEnterNavigation();     // Initialisation de la navigation par touche Entrée
         });
 
         // Logique unifiée de normalisation équivalente à normalizeCycle()
@@ -991,6 +992,31 @@
             });
         }
 
+        // Saisie séquentielle intelligente avec la touche Entrée
+        function setupEnterNavigation() {
+            const form = document.getElementById('statsForm');
+            if (!form) return;
+
+            form.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    // Empêche la soumission automatique par défaut du formulaire
+                    event.preventDefault(); 
+                    
+                    const target = event.target;
+                    if (target && target.tagName === 'INPUT') {
+                        // Liste de tous les éléments de saisie modifiables requis
+                        const inputs = Array.from(form.querySelectorAll('input:not([disabled]):not([readonly])'));
+                        const currentIndex = inputs.indexOf(target);
+                        
+                        if (currentIndex !== -1 && currentIndex < inputs.length - 1) {
+                            // Déplace le focus sur la zone de saisie suivante
+                            inputs[currentIndex + 1].focus();
+                        }
+                    }
+                }
+            });
+        }
+
         // Vérification rigoureuse de l'exhaustivité des saisies
         function checkFormCompletion() {
             const form = document.getElementById('statsForm');
@@ -1257,46 +1283,18 @@
             const form = document.getElementById('statsForm');
             if (!form) return;
 
-            // Capte les entrées sur tous les inputs du formulaire de saisie
+            // Épelle uniquement le caractère qui vient d'être saisi par l'utilisateur
             form.addEventListener('input', (event) => {
                 if (!isAudioSpeechEnabled) return;
                 
                 const target = event.target;
                 if (target && target.tagName === 'INPUT') {
-                    const value = target.value.trim();
-                    if (value === '') return;
+                    const value = target.value;
+                    if (value.length === 0) return;
 
-                    // Traitement différencié si c'est un nombre ou du texte
-                    if (target.type === 'number') {
-                        speakText(value);
-                    } else if (target.type === 'text') {
-                        // Pour les noms, on lit le dernier caractère ou le mot selon la fluidité recherchée
-                        const lastChar = value.slice(-1);
-                        if (lastChar === ' ') {
-                            speakText(value); // Lit le bloc complet au premier espace
-                        } else {
-                            speakText(lastChar); // Épèle au fur et à mesure
-                        }
-                    }
-                }
-            });
-
-            // Ajout d'une confirmation de valeur finale lorsque l'utilisateur quitte le champ (blur)
-            form.addEventListener('focusout', (event) => {
-                if (!isAudioSpeechEnabled) return;
-                
-                const target = event.target;
-                if (target && target.tagName === 'INPUT' && target.value.trim() !== '') {
-                    // Récupération du label ou de la section pour contextualiser la valeur validée
-                    let contextLabel = "";
-                    const parentContainer = target.closest('.bg-light, .border');
-                    if (parentContainer) {
-                        const header = parentContainer.querySelector('h5');
-                        if (header) contextLabel = header.innerText + " ";
-                    }
-                    
-                    const subLabel = target.previousElementSibling ? target.previousElementSibling.innerText : "";
-                    speakText(`${contextLabel} ${subLabel} : ${target.value}`);
+                    // Extrait uniquement le dernier caractère entré au clavier
+                    const lastChar = value.charAt(value.length - 1);
+                    speakText(lastChar);
                 }
             });
         }
