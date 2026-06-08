@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Academix Manager - Saisie des Statistiques</title>
-    <link rel="manifest" href="manifest.json">
+    <link class="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="logoapp.png">
     <meta name="theme-color" content="#075E54">
 
@@ -184,6 +184,17 @@
             left: 20px;
             z-index: 9999;
         }
+
+        /* Badge de connectivité réseau permanent */
+        .network-badge {
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
     </style>
 </head>
 <body>
@@ -209,6 +220,13 @@
                     <span id="pageHeaderTitle" class="navbar-brand-sub">Saisie des Statistiques Périodiques</span>
                 </div>
             </a>
+            
+            <div class="ms-auto me-3">
+                <span id="networkStatusBadge" class="network-badge bg-secondary text-white">
+                    <span>⚪</span> Initialisation...
+                </span>
+            </div>
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" style="border-color: white;">
                 <span class="navbar-toggler-icon" style="background-image: url('data:image/svg+xml;charset=utf8,%3Csvg viewBox=%220 0 30 30%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath stroke=%22rgba%28255, 255, 255, 1%29%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-miterlimit=%2210%22 d=%22M4 7h22M4 15h22M4 23h22%22/%3E%3C/svg%3E');"></span>
             </button>
@@ -624,9 +642,9 @@
         </div>
 
         <div class="text-center mb-5">
-            <button class="btn btn-outline-secondary" onclick="toggleHiddenData()">Afficher / Masquer la base de données locale</button>
+            <button class="btn btn-outline-secondary" onclick="toggleHiddenData()">Afficher / Masquer la base de données cloud</button>
             <div id="hiddenDataContainer" class="text-start mt-3 shadow-sm">
-                <h5 class="border-bottom pb-2">Récapitulatif de l'Établissement</h5>
+                <h5 class="border-bottom pb-2">Récapitulatif de l'Établissement (Données Cloud)</h5>
                 <div id="renderedData">
                     <p class="text-muted">Aucune donnée générée pour le moment.</p>
                 </div>
@@ -641,12 +659,30 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue, child, get } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+
+        // Configuration fournie par l'utilisateur
+        const firebaseConfig = {
+            apiKey: "AIzaSyADkksLVNIJ4dxSU-LPC-2RKPI9L6FYQUk",
+            authDomain: "academix-manager.firebaseapp.com",
+            projectId: "academix-manager",
+            storageBucket: "academix-manager.firebasestorage.app",
+            messagingSenderId: "739622688976",
+            appId: "1:739622688976:web:40c0ac54b311142e2926d5",
+            databaseURL: "https://academix-manager-default-rtdb.europe-west1.firebasedatabase.app/"
+        };
+
+        // Initialisation de l'application Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
         /**
          * ÉTAT GLOBAL DE L'APPLICATION
-         * Conçu pour être facilement exporté vers Firebase ultérieurement.
+         * Synchronisé en temps réel avec Firebase Realtime Database
          */
-        let AppState = {
+        window.AppState = {
             isLocked: false,
             secretCode: '1234',
             school: {
@@ -657,23 +693,57 @@
                 academicPeriod: 'Trimestres',
                 cycles: []
             },
-            promotions: [], // Format: { id: 12345, cycle: "...", name: "6ème", sections: "...", classes: ["D1", "D2", ...] }
-            stats: {}       // Nouvelle branche persistante pour stocker les statistiques par contexte
+            promotions: [], 
+            stats: {}       
         };
 
-        // État de la fonctionnalité de lecture audio
-        let isAudioSpeechEnabled = false;
+        // Rendre l'instance de la base accessible globalement
+        window.FirebaseDB = db;
+        window.FirebaseRefs = { ref, set, onValue, child, get };
 
-        // Chargement initial au démarrage
-        window.addEventListener('DOMContentLoaded', () => {
-            loadFromLocalStorage();
+        // Gestionnaire permanent du badge de connectivité réseau (.info/connected)
+        const connectedRef = ref(db, ".info/connected");
+        onValue(connectedRef, (snap) => {
+            const badge = document.getElementById('networkStatusBadge');
+            if (snap.val() === true) {
+                badge.className = "network-badge bg-success text-white";
+                badge.innerHTML = "<span>●</span> En ligne";
+            } else {
+                badge.className = "network-badge bg-danger text-white";
+                badge.innerHTML = "<span>○</span> Hors ligne (Cache local)";
+            }
+        });
+
+        // Écouteur permanent sur l'ensemble de la branche applicative
+        const appStateRef = ref(db, "ProSchool_AppState");
+        onValue(appStateRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                window.AppState = data;
+                if (!window.AppState.stats) window.AppState.stats = {};
+                if (!window.AppState.promotions) window.AppState.promotions = [];
+                if (!window.AppState.school) window.AppState.school = {};
+            }
+            
+            // Exécution des procédures de mise à jour d'interface héritées
             initializeInterfaceMetaData();
             populatePeriods();
             populateCycles();
+            updateHiddenView();
+            updateClassesStatusDisplay();
+        });
+    </script>
+
+    <script>
+        // État de la fonctionnalité de lecture audio
+        let isAudioSpeechEnabled = false;
+
+        // Chargement initial au démarrage lié aux cycles natifs
+        window.addEventListener('DOMContentLoaded', () => {
             resetSummaryTable();
             setupNumericConstraints();
-            setupAudioSpeechListeners(); // Initialisation des écouteurs de synthèse vocale
-            setupEnterNavigation();     // Initialisation de la navigation par touche Entrée
+            setupAudioSpeechListeners(); 
+            setupEnterNavigation();     
         });
 
         // Logique unifiée de normalisation équivalente à normalizeCycle()
@@ -682,28 +752,12 @@
             return cycle.trim().toLowerCase().replace(/\s+/g, '');
         }
 
-        function saveToLocalStorage() {
-            localStorage.setItem('ProSchool_AppState_Secure', JSON.stringify(AppState));
-        }
-
-        function loadFromLocalStorage() {
-            const data = localStorage.getItem('ProSchool_AppState_Secure');
-            if (data) {
-                try {
-                    AppState = JSON.parse(data);
-                    if (!AppState.stats) AppState.stats = {}; // Initialisation si inexistante
-                    updateHiddenView();
-                } catch (e) {
-                    console.error("Erreur critique lors de la lecture du stockage local unifié", e);
-                }
-            }
-        }
-
         // Mutation intelligente du sélecteur de période basé sur AppState.school.academicPeriod
         function populatePeriods() {
             const selectSemestre = document.getElementById('selectSemestre');
             if (!selectSemestre) return;
 
+            const previousValue = selectSemestre.value;
             selectSemestre.innerHTML = '';
             const periodType = AppState.school.academicPeriod || 'Trimestres';
 
@@ -714,7 +768,6 @@
                     <option value="Annuel">Annuel</option>
                 `;
             } else {
-                // Par défaut ou si configuré sur 'Trimestres'
                 selectSemestre.innerHTML = `
                     <option value="1er Trimestre">1er Trimestre</option>
                     <option value="2nd Trimestre">2nd Trimestre</option>
@@ -722,9 +775,11 @@
                     <option value="Annuel">Annuel</option>
                 `;
             }
+            if(previousValue && selectSemestre.querySelector(`option[value="${previousValue}"]`)) {
+                selectSemestre.value = previousValue;
+            }
         }
 
-        // Intercepte les mutations du sélecteur de période pour mettre à jour l'indicateur de classe et recharger si nécessaire
         function handlePeriodOrSemesterChange() {
             updateClassesStatusDisplay();
             loadStatsForCurrentSelection();
@@ -736,9 +791,11 @@
             
             if (confirmation === savedCode) {
                 AppState.promotions = AppState.promotions.filter(p => p.id !== id);
-                saveToLocalStorage();
-                updateHiddenView();
-                populateCycles(); // Recalcule les filtres de cycles
+                
+                // Synchronisation Cloud Instantanée
+                if (window.FirebaseDB) {
+                    window.FirebaseRefs.set(window.FirebaseRefs.ref(window.FirebaseDB, "ProSchool_AppState/promotions"), AppState.promotions);
+                }
             } else if (confirmation !== null) {
                 alert("Code secret incorrect. Suppression annulée.");
             }
@@ -756,9 +813,6 @@
             }, 1800);
         }
 
-        // ==========================================
-        // AFFICHAGE DE LA LISTE MASQUÉE
-        // ==========================================
         function toggleHiddenData() {
             const container = document.getElementById('hiddenDataContainer');
             if (container.style.display === 'none' || container.style.display === '') {
@@ -770,6 +824,7 @@
 
         function updateHiddenView() {
             const renderDiv = document.getElementById('renderedData');
+            if(!renderDiv) return;
             
             let html = `<h6>Établissement: ${AppState.school.name || 'Non défini'} | Année: ${AppState.school.year || 'Non définie'}</h6>`;
             html += `<p><strong>Directeur :</strong> ${AppState.school.director || 'Non spécifié'} | <strong>Censeur :</strong> ${AppState.school.censor || 'Non spécifié'}</p>`;
@@ -794,11 +849,6 @@
             renderDiv.innerHTML = html;
         }
 
-        // ==========================================
-        // FONCTIONNALITÉS COMPLÉMENTAIRES INJECTÉES
-        // ==========================================
-
-        // Met à jour l'affichage structurel haut de page basé sur AppState
         function initializeInterfaceMetaData() {
             if (AppState.school.name) {
                 document.getElementById('displaySchoolName').innerText = AppState.school.name;
@@ -808,12 +858,13 @@
             }
         }
 
-        // Injecte la liste unique des cycles trouvés dans les promotions configurées
         function populateCycles() {
             const selectCycle = document.getElementById('selectCycle');
+            if(!selectCycle) return;
+            const previousCycle = selectCycle.value;
+            
             selectCycle.innerHTML = '<option value="">-- Sélectionner un cycle --</option>';
             
-            // Extraction unique des cycles présents
             const cyclesSet = new Set();
             if (AppState.promotions) {
                 AppState.promotions.forEach(p => {
@@ -828,13 +879,16 @@
                 selectCycle.appendChild(opt);
             });
 
-            document.getElementById('selectClasse').disabled = true;
-            document.getElementById('selectClasse').innerHTML = '<option value="">-- Sélectionner une classe --</option>';
-            document.getElementById('statsForm').style.display = 'none';
-            document.getElementById('summaryTableContainer').classList.add('d-none');
+            if(previousCycle && cyclesSet.has(previousCycle)) {
+                selectCycle.value = previousCycle;
+            } else {
+                document.getElementById('selectClasse').disabled = true;
+                document.getElementById('selectClasse').innerHTML = '<option value="">-- Sélectionner une classe --</option>';
+                document.getElementById('statsForm').style.display = 'none';
+                document.getElementById('summaryTableContainer').classList.add('d-none');
+            }
         }
 
-        // Intercepte les mutations de cycle pour lier structurellement les classes associées
         function handleCycleChange() {
             const cycleSelected = document.getElementById('selectCycle').value;
             const selectClasse = document.getElementById('selectClasse');
@@ -853,7 +907,6 @@
             AppState.promotions.forEach(p => {
                 if (p.cycle === cycleSelected && p.classes) {
                     p.classes.forEach(c => {
-                        // Concaténation logique du nom de la promotion pour une distinction claire (ex: 6ème M1)
                         classesTrouvees.push(`${p.name} - ${c}`);
                     });
                 }
@@ -867,7 +920,6 @@
                     selectClasse.appendChild(opt);
                 });
                 selectClasse.disabled = false;
-                // Analyse immédiate de l'état des options injectées dans le sélecteur
                 updateClassesStatusDisplay();
             } else {
                 selectClasse.disabled = true;
@@ -876,9 +928,9 @@
             checkFormCompletion();
         }
 
-        // Analyse la base locale pour formater textuellement et visuellement les options du sélecteur de classe ainsi que le badge d'état haut
         function updateClassesStatusDisplay() {
             const selectClasse = document.getElementById('selectClasse');
+            if(!selectClasse) return;
             const options = selectClasse.querySelectorAll('option');
             const schoolYear = AppState.school.year || '2025-2026';
             const semestre = document.getElementById('selectSemestre').value;
@@ -891,8 +943,6 @@
             options.forEach(opt => {
                 if (!opt.value) return;
                 const testKey = `${schoolYear}_${semestre}_${normalizedCycle}_${opt.value}`;
-                
-                // Nettoyage des suffixes précédents pour éviter l'accumulation
                 let cleanText = opt.innerText.replace(" - OK ✅", "").replace(" - Incomplet", "");
                 
                 if (AppState.stats && AppState.stats[testKey]) {
@@ -918,7 +968,6 @@
             }
         }
 
-        // Nouvelle fonction pour comparer automatiquement les moyennes extrêmes (Garçons vs Filles)
         function compareAverages() {
             const fortG = parseFloat(document.getElementById('stat_fort_g').value);
             const fortF = parseFloat(document.getElementById('stat_fort_f').value);
@@ -928,7 +977,6 @@
             const bilanFort = document.getElementById('bilan_fort_val');
             const bilanFaible = document.getElementById('bilan_faible_val');
 
-            // Extraction Plus forte moyenne
             if (!isNaN(fortG) && !isNaN(fortF)) {
                 bilanFort.value = Math.max(fortG, fortF).toFixed(2);
             } else if (!isNaN(fortG)) {
@@ -939,7 +987,6 @@
                 bilanFort.value = '';
             }
 
-            // Extraction Plus faible moyenne
             if (!isNaN(faibleG) && !isNaN(faibleF)) {
                 bilanFaible.value = Math.min(faibleG, faibleF).toFixed(2);
             } else if (!isNaN(faibleG)) {
@@ -951,7 +998,6 @@
             }
         }
 
-        // Calculateur de totaux automatique par tranches
         function sumTranche(prefix) {
             const inputG = document.getElementById(`stat_${prefix}_g`);
             const inputF = document.getElementById(`stat_${prefix}_f`);
@@ -965,7 +1011,6 @@
             document.getElementById(`stat_${prefix}_t`).value = g + f;
         }
 
-        // Configuration des contraintes numériques et formatage automatique à deux décimales
         function setupNumericConstraints() {
             const avgInputs = ['stat_fort_g', 'stat_fort_f', 'stat_faible_g', 'stat_faible_f'];
             
@@ -986,30 +1031,26 @@
                         if (val > 20) val = 20;
                         if (val < 0) val = 0;
                         input.value = val.toFixed(2);
-                        compareAverages(); // Forcer la comparaison à la perte de focus
+                        compareAverages(); 
                     }
                 });
             });
         }
 
-        // Saisie séquentielle intelligente avec la touche Entrée
         function setupEnterNavigation() {
             const form = document.getElementById('statsForm');
             if (!form) return;
 
             form.addEventListener('keydown', (event) => {
                 if (event.key === 'Enter') {
-                    // Empêche la soumission automatique par défaut du formulaire
                     event.preventDefault(); 
                     
                     const target = event.target;
                     if (target && target.tagName === 'INPUT') {
-                        // Liste de tous les éléments de saisie modifiables requis
                         const inputs = Array.from(form.querySelectorAll('input:not([disabled]):not([readonly])'));
                         const currentIndex = inputs.indexOf(target);
                         
                         if (currentIndex !== -1 && currentIndex < inputs.length - 1) {
-                            // Déplace le focus sur la zone de saisie suivante
                             inputs[currentIndex + 1].focus();
                         }
                     }
@@ -1017,7 +1058,6 @@
             });
         }
 
-        // Vérification rigoureuse de l'exhaustivité des saisies
         function checkFormCompletion() {
             const form = document.getElementById('statsForm');
             const selectClasse = document.getElementById('selectClasse').value;
@@ -1036,7 +1076,6 @@
                 }
             });
 
-            // L'affichage de l'indicateur s'aligne d'abord sur la complétude réelle du formulaire
             const indicator = document.getElementById('statusIndicator');
             if (allFilled) {
                 indicator.innerText = "OK ✅";
@@ -1049,7 +1088,6 @@
             }
         }
 
-        // Génère un identifiant unique de stockage pour la configuration courante avec cycle normalisé
         function buildStorageKey() {
             const schoolYear = AppState.school.year || '2025-2026';
             const semestre = document.getElementById('selectSemestre').value;
@@ -1059,14 +1097,12 @@
             return `${schoolYear}_${semestre}_${normalizedCycle}_${classe}`;
         }
 
-        // Restitue ou nettoie le formulaire selon l'existence de données préalables
         function loadStatsForCurrentSelection() {
             const selectClasse = document.getElementById('selectClasse').value;
             const form = document.getElementById('statsForm');
             const summaryTableContainer = document.getElementById('summaryTableContainer');
             const summaryTableTitle = document.getElementById('summaryTableTitle');
 
-            // Cacher le message d'instruction dès qu'on interagit avec la sélection
             document.getElementById('instructionMessage').classList.add('d-none');
 
             if (!selectClasse) {
@@ -1082,8 +1118,6 @@
             summaryTableTitle.innerText = `Statistiques par classe : ${selectClasse}`;
             
             const key = buildStorageKey();
-
-            // Tableau mis à jour avec les nouveaux identifiants séparés 'malades' et 'abandons'
             const prefixes = ['malades', 'abandons', 'inf650', '650_750', '750_900', '900_1000', '1000_1100', '1100_1200', '1200_1400', '1400_1600', 'sup1600'];
 
             if (AppState.stats && AppState.stats[key]) {
@@ -1093,7 +1127,6 @@
                 document.getElementById('stat_faible_g').value = s.faible_g ? parseFloat(s.faible_g).toFixed(2) : '';
                 document.getElementById('stat_faible_f').value = s.faible_f ? parseFloat(s.faible_f).toFixed(2) : '';
                 
-                // Restitution des noms ajoutés
                 document.getElementById('nom_fort_eleve').value = s.nom_fort || '';
                 document.getElementById('nom_faible_eleve').value = s.nom_faible || '';
 
@@ -1112,28 +1145,24 @@
                 });
             }
 
-            compareAverages(); // Met à jour les champs de lecture seule après le chargement
+            compareAverages(); 
             checkFormCompletion();
             updateSummaryTable();
             updateClassesStatusDisplay();
         }
 
-        // Met à jour dynamiquement le tableau récapitulatif du header
         function updateSummaryTable() {
             const getVal = (id) => parseInt(document.getElementById(id).value) || 0;
 
-            // Non Classés
             const mal_g = getVal('stat_malades_g');
             const mal_f = getVal('stat_malades_f');
             const aba_g = getVal('stat_abandons_g');
             const aba_f = getVal('stat_abandons_f');
 
-            // Calculs spécifiques des sous-totaux pour la ligne des non classés
             const nonclass_tot_g = mal_g + aba_g;
             const nonclass_tot_f = mal_f + aba_f;
             const nonclass_tot_t = nonclass_tot_g + nonclass_tot_f;
 
-            // Tranches de notes Classés
             const tranches = ['inf650', '650_750', '750_900', '900_1000', '1000_1100', '1100_1200', '1200_1400', '1400_1600', 'sup1600'];
             let class_g = 0;
             let class_f = 0;
@@ -1143,7 +1172,6 @@
                 class_f += getVal(`stat_${t}_f`);
             });
 
-            // Nombre de Moyennes (>= 10)
             const tranchesMoy = ['1000_1100', '1100_1200', '1200_1400', '1400_1600', 'sup1600'];
             let moy_g = 0;
             let moy_f = 0;
@@ -1153,11 +1181,9 @@
                 moy_f += getVal(`stat_${t}_f`);
             });
 
-            // Effectifs Totaux (Classés + Malades + Abandons)
             const eff_g = class_g + mal_g + aba_g;
             const eff_f = class_f + mal_f + aba_f;
 
-            // Assignation aux éléments DOM Garçons
             document.getElementById('summary_eff_g').innerText = eff_g;
             document.getElementById('summary_class_g').innerText = class_g;
             document.getElementById('summary_mal_g').innerText = mal_g;
@@ -1165,7 +1191,6 @@
             document.getElementById('summary_nonclass_tot_g').innerText = nonclass_tot_g;
             document.getElementById('summary_moy_g').innerText = moy_g;
 
-            // Assignation aux éléments DOM Filles
             document.getElementById('summary_eff_f').innerText = eff_f;
             document.getElementById('summary_class_f').innerText = class_f;
             document.getElementById('summary_mal_f').innerText = mal_f;
@@ -1173,7 +1198,6 @@
             document.getElementById('summary_nonclass_tot_f').innerText = nonclass_tot_f;
             document.getElementById('summary_moy_f').innerText = moy_f;
 
-            // Assignation aux éléments DOM Totaux
             document.getElementById('summary_eff_t').innerText = eff_g + eff_f;
             document.getElementById('summary_class_t').innerText = class_g + class_f;
             document.getElementById('summary_mal_t').innerText = mal_g + mal_f;
@@ -1182,7 +1206,6 @@
             document.getElementById('summary_moy_t').innerText = moy_g + moy_f;
         }
 
-        // Remet à zéro l'affichage du tableau récapitulatif
         function resetSummaryTable() {
             const ids = ['eff_g', 'class_g', 'mal_g', 'aba_g', 'nonclass_tot_g', 'moy_g', 'eff_f', 'class_f', 'mal_f', 'aba_f', 'nonclass_tot_f', 'moy_f', 'eff_t', 'class_t', 'mal_t', 'aba_t', 'nonclass_tot_t', 'moy_t'];
             ids.forEach(id => {
@@ -1191,7 +1214,6 @@
             });
         }
 
-        // Sauvegarde de l'état local avec déclenchement de l'animation transparente
         function saveStatsData() {
             const selectClasseEl = document.getElementById('selectClasse');
             const selectClasse = selectClasseEl.value;
@@ -1209,14 +1231,13 @@
             const key = buildStorageKey();
             const prefixes = ['malades', 'abandons', 'inf650', '650_750', '750_900', '900_1000', '1000_1100', '1100_1200', '1200_1400', '1400_1600', 'sup1600'];
             
-            // Mutation de l'objet AppState de manière structurée incluant les noms
             let dataToSave = {
                 fort_g: document.getElementById('stat_fort_g').value,
                 fort_f: document.getElementById('stat_fort_f').value,
                 faible_g: document.getElementById('stat_faible_g').value,
                 faible_f: document.getElementById('stat_faible_f').value,
-                nom_fort: document.getElementById('nom_fort_eleve').value,     // Ajout de la capture du nom le plus fort
-                nom_faible: document.getElementById('nom_faible_eleve').value  // Ajout de la capture du nom le plus faible
+                nom_fort: document.getElementById('nom_fort_eleve').value,     
+                nom_faible: document.getElementById('nom_faible_eleve').value  
             };
 
             prefixes.forEach(prefix => {
@@ -1224,34 +1245,33 @@
                 dataToSave[`${prefix}_f`] = document.getElementById(`stat_${prefix}_f`).value;
             });
 
+            // Mutation locale immédiate
             AppState.stats[key] = dataToSave;
 
-            saveToLocalStorage();
+            // Synchronisation instantanée vers Firebase Realtime Database
+            if (window.FirebaseDB) {
+                window.FirebaseRefs.set(window.FirebaseRefs.ref(window.FirebaseDB, "ProSchool_AppState/stats/" + key), dataToSave)
+                .then(() => {
+                    console.log("Données transmises avec succès au cloud.");
+                })
+                .catch((error) => {
+                    console.error("Échec de synchronisation cloud, conservé en cache locale :", error);
+                });
+            }
             
-            // Masquer le formulaire de saisie et le tableau récapitulatif flottant
             form.style.display = 'none';
             document.getElementById('summaryTableContainer').classList.add('d-none');
 
-            // Réinitialisation ciblée de la valeur sélectionnée mais la liste reste active pour continuer la saisie
             selectClasseEl.value = "";
-
-            // Réinitialiser le tableau récapitulatif
             resetSummaryTable();
-
-            // Mettre à jour globalement les libellés de la liste des classes (ajoute le crochet de validation vert)
             updateClassesStatusDisplay();
             
-            // Affichage de l'instruction invitant à passer à une autre classe
             const instructionEl = document.getElementById('instructionMessage');
             instructionEl.classList.remove('d-none');
             
-            // Déclenchement de l'animation d'overlay paramétrée
-            showSuccessAnimation('✓', 'Enregistrement Effectué', `Données sauvegardées en mémoire avec succès.`);
+            showSuccessAnimation('✓', 'Enregistrement Effectué', `Données sauvegardées avec synchronisation cloud.`);
         }
 
-        // ==========================================
-        // LOGIQUE ISOLÉE DE LECTURE VOCALE AUDIO
-        // ==========================================
         function toggleAudioSpeech() {
             isAudioSpeechEnabled = !isAudioSpeechEnabled;
             const btn = document.getElementById('audioToggleBtn');
@@ -1270,12 +1290,11 @@
 
         function speakText(text) {
             if (!isAudioSpeechEnabled || !window.speechSynthesis) return;
-            // Annule les lectures en cours pour éviter les superpositions denses
             window.speechSynthesis.cancel();
             
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'fr-FR';
-            utterance.rate = 1.1; // Vitesse légèrement ajustée pour la saisie fluide
+            utterance.rate = 1.1; 
             window.speechSynthesis.speak(utterance);
         }
 
@@ -1283,7 +1302,6 @@
             const form = document.getElementById('statsForm');
             if (!form) return;
 
-            // Épelle uniquement le caractère qui vient d'être saisi par l'utilisateur
             form.addEventListener('input', (event) => {
                 if (!isAudioSpeechEnabled) return;
                 
@@ -1292,7 +1310,6 @@
                     const value = target.value;
                     if (value.length === 0) return;
 
-                    // Extrait uniquement le dernier caractère entré au clavier
                     const lastChar = value.charAt(value.length - 1);
                     speakText(lastChar);
                 }
@@ -1304,7 +1321,6 @@
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            // Affiche un bouton d'installation personnalisé si présent
             const btn = document.getElementById('installBtn');
             if(btn) btn.style.display = 'block';
         });

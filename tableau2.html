@@ -10,6 +10,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
+            /* Thème WhatsApp Messenger */
             --wa-dark-green: #075E54;
             --wa-teal: #128C7E;
             --wa-light-green: #25D366;
@@ -24,6 +25,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
+        /* Navbar Styling */
         .navbar-custom {
             background-color: var(--wa-dark-green);
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -40,6 +42,7 @@
             margin-top: -5px;
         }
 
+        /* Custom Buttons */
         .btn-wa {
             background-color: var(--wa-light-green);
             color: var(--wa-white);
@@ -51,6 +54,7 @@
             color: var(--wa-white);
         }
 
+        /* Style ciblé pour la saisie utilisateur */
         .form-control, .form-select {
             color: #0b3c5d !important;
             font-weight: bold !important;
@@ -62,6 +66,7 @@
             color: #0b3c5d !important;
         }
 
+        /* Cards */
         .card {
             border: none;
             border-radius: 10px;
@@ -150,13 +155,15 @@
             color: #1e293b !important;
             font-weight: 700 !important;
             text-transform: uppercase;
-            font-size: 0.75rem !important;
+            font-size: 0.72rem !important;
             border: 1px solid #cbd5e1 !important;
-            padding: 6px 4px !important;
+            padding: 5px 3px !important;
+            white-space: nowrap;
         }
         .custom-printed-table td {
             border: 1px solid #cbd5e1 !important;
-            padding: 6px 4px !important;
+            padding: 5px 3px !important;
+            white-space: nowrap;
         }
         .custom-printed-table tbody tr:nth-child(even) {
             background-color: #f4f6f7 !important;
@@ -202,28 +209,28 @@
         }
 
         /* Bouton flottant d'installation PWA */
-        .pwa-install-floating {
+        #installBtn {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            z-index: 1050;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            font-weight: 600;
+            z-index: 9999;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        /* Règle dynamique d'orientation qui sera modifiée par JS */
+        @page {
+            size: landscape;
+            margin: 5mm 5mm 10mm 5mm;
         }
 
         @media print {
-            @page {
-                size: landscape;
-                margin: 5mm 5mm 10mm 5mm;
-            }
             body {
                 background-color: #ffffff;
                 color: #000000;
-                width: 100% !important;
-                margin: 0 !important;
-                padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
-            .navbar, .btn, .no-print, footer, .print-header, .pwa-install-floating {
+            .navbar, .btn, .no-print, footer, .print-header, #installBtn, .modal {
                 display: none !important;
             }
             .card {
@@ -231,13 +238,16 @@
                 margin: 0 !important;
                 padding: 0 !important;
                 border: none !important;
-                width: 100% !important;
             }
             .card-body {
                 padding: 0 !important;
-                width: 100% !important;
             }
             
+            /* Ajustement global pour maximiser la compacité */
+            #summaryTableContainer {
+                zoom: 72%;
+            }
+
             /* En-tête Pro raffiné sur deux lignes strictement */
             .print-header-clean {
                 display: flex !important;
@@ -277,34 +287,28 @@
                 max-height: none !important;
                 border: none !important;
                 border-radius: 0 !important;
-                width: 100% !important;
             }
             
-            /* Répétition automatique de l'en-tête sur chaque page et ajustement d'échelle complet */
+            /* Répétition automatique de l'en-tête sur chaque page */
             .custom-printed-table {
                 width: 100% !important;
-                max-width: 100% !important;
-                table-layout: fixed !important;
                 border-collapse: collapse !important;
                 border-spacing: 0 !important;
                 display: table !important;
-                border-radius: 8px !important;
-                overflow: hidden !important;
-            }
-            .custom-printed-table th {
-                font-size: 0.62rem !important;
-                padding: 4px 2px !important;
-                word-wrap: break-word !important;
-                white-space: normal !important;
-            }
-            .custom-printed-table td {
-                font-size: 0.65rem !important;
-                padding: 4px 2px !important;
-                word-wrap: break-word !important;
+                font-size: 0.52rem !important; /* Micro-typographie forcée pour l'alignement */
             }
             .custom-printed-table thead {
                 display: table-header-group !important;
                 position: static !important;
+            }
+            .custom-printed-table th {
+                font-size: 0.52rem !important;
+                padding: 2px 1px !important;
+                white-space: nowrap !important;
+            }
+            .custom-printed-table td {
+                padding: 2px 1px !important;
+                white-space: nowrap !important;
             }
             .custom-printed-table tr {
                 page-break-inside: avoid !important;
@@ -324,11 +328,10 @@
 
             .signatures-block {
                 page-break-inside: avoid !important;
-                margin-top: 25px !important;
-                width: 100% !important;
+                margin-top: 30px !important;
             }
 
-            /* Pied de page d'impression positionné en bas de page */
+            /* Pied de page d'impression dédié basé sur un conteneur fixe */
             .print-footer-clean {
                 display: block !important;
                 position: fixed;
@@ -347,8 +350,7 @@
 </head>
 <body>
 
-    <!-- Bouton d'installation PWA Flottant -->
-    <button id="installBtn" onclick="installPWA()" style="display:none;" class="btn btn-warning btn-sm pwa-install-floating">📲 Installer l'App</button>
+    <button id="installBtn" onclick="installPWA()" style="display:none;" class="btn btn-warning btn-sm">Installer l'App</button>
 
     <div id="successOverlay" class="success-overlay">
         <div class="success-anim-box">
@@ -396,7 +398,7 @@
         <div class="card">
             <div class="card-body">
                 <div class="text-center mb-4 no-print">
-                    <h1 id="displaySchoolName" class="fw-bold text-uppercase" style="color: var(--wa-dark-green); font-size: 2rem;">CEG 1 BEMBÈRÈKÈ</h1>
+                    <h1 id="displaySchoolName" class="fw-bold text-uppercase" style="color: var(--wa-dark-green); font-size: 2.5rem;">CEG 1 BEMBÈRÈKÈ</h1>
                     <h3 id="displaySchoolYear" class="text-secondary fw-semibold">Année Scolaire : 2025-2026</h3>
                 </div>
 
@@ -413,7 +415,6 @@
                 <div class="card" id="summaryTableContainer">
                     <div class="card-header bg-white py-2 border-0">
                         
-                        <!-- En-tête Pro d'impression raffiné sur 2 lignes strictement -->
                         <div class="print-header-clean">
                             <div class="left-side">
                                 <h1 id="cleanPrintSchoolName">CEG 1 BEMBÈRÈKÈ</h1>
@@ -456,7 +457,7 @@
                 </div>
 
                 <div class="text-end mt-4 no-print">
-                    <button type="button" class="btn btn-wa px-5 py-2 fs-5 shadow-sm" onclick="window.print()">
+                    <button type="button" class="btn btn-wa px-5 py-2 fs-5 shadow-sm" onclick="openPrintModal()">
                         🖨️ Imprimer ce document
                     </button>
                 </div>
@@ -475,7 +476,38 @@
 
     </div>
 
-    <!-- Pied de page d'impression dédié -->
+    <div class="modal fade" id="printConfigModal" tabindex="-1" aria-labelledby="printConfigModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 12px; overflow: hidden;">
+                <div class="modal-header text-white" style="background-color: var(--wa-dark-green);">
+                    <h5 class="modal-title fw-bold" id="printConfigModalLabel">Configuration de l'impression</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-light">
+                    <p class="fw-semibold text-secondary">Veuillez sélectionner l'orientation de page souhaitée pour le document PDF :</p>
+                    <div class="card p-3 mb-2 border border-secondary-subtle">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="printOrientation" id="orientLandscape" value="landscape" checked>
+                            <label class="form-check-label fw-bold text-dark" for="orientLandscape">
+                                🗺️ Paysage (Recommandé - Évite les coupures horizontales)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="printOrientation" id="orientPortrait" value="portrait">
+                            <label class="form-check-label fw-bold text-dark" for="orientPortrait">
+                                📄 Portrait (Format vertical compact)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="button" class="btn btn-secondary fw-semibold" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-wa px-4" onclick="executeConfiguredPrint()">Lancer l'impression</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="print-footer-clean">
         Logiciel ACADEMIX MANAGER conçu par ATIZOUN DIGICOM / atizoun@gmail.com
     </div>
@@ -502,11 +534,20 @@
             stats: {}
         };
 
+        // Variable globale pour l'instance du modal Bootstrap
+        let printModalInstance = null;
+
         window.addEventListener('DOMContentLoaded', () => {
             loadFromLocalStorage();
             initializeInterfaceMetaData();
             populatePeriods();
             refreshTableData();
+
+            // Initialisation du modal d'impression
+            const modalElement = document.getElementById('printConfigModal');
+            if (modalElement) {
+                printModalInstance = new bootstrap.Modal(modalElement);
+            }
         });
 
         function saveToLocalStorage() {
@@ -572,6 +613,36 @@
             document.getElementById('summaryTableTitle').innerHTML = `TABLEAU 2 : EFFECTIFS ET RÉSULTATS (${semestre})`;
             document.getElementById('cleanPrintTableTitle').innerHTML = `TABLEAU 2 : EFFECTIFS ET RÉSULTATS (${semestre})`;
             consolidateGeneralStats();
+        }
+
+        function openPrintModal() {
+            if (printModalInstance) {
+                printModalInstance.show();
+            } else {
+                window.print();
+            }
+        }
+
+        function executeConfiguredPrint() {
+            const isLandscape = document.getElementById('orientLandscape').checked;
+            const orientationValue = isLandscape ? 'landscape' : 'portrait';
+            
+            let stylePage = document.getElementById('dynamicPageOrientationStyle');
+            if (!stylePage) {
+                stylePage = document.createElement('style');
+                stylePage.id = 'dynamicPageOrientationStyle';
+                document.head.appendChild(stylePage);
+            }
+            
+            stylePage.innerHTML = `@page { size: ${orientationValue}; margin: 5mm 5mm 10mm 5mm; }`;
+            
+            if (printModalInstance) {
+                printModalInstance.hide();
+            }
+            
+            setTimeout(() => {
+                window.print();
+            }, 300);
         }
 
         function consolidateGeneralStats() {
@@ -652,9 +723,17 @@
                 Object.keys(AppState.stats).forEach(key => {
                     if (key.startsWith(`${schoolYear}_${semestre}_`)) {
                         const parts = key.split('_');
-                        const currentCycle = parts[2] ? parts[2].trim().toLowerCase() : '';
+                        const currentCycleRaw = parts[2] ? parts[2].trim() : '';
                         const currentClassName = parts[3] ? parts[3].trim() : 'Classe';
                         let currentPromo = currentClassName.split(' - ')[0] || 'Inconnue';
+                        
+                        let currentCycle = '';
+                        if (AppState.promotions) {
+                            const foundPromo = AppState.promotions.find(p => p.name === currentPromo);
+                            if (foundPromo) {
+                                currentCycle = foundPromo.cycle || '';
+                            }
+                        }
 
                         const s = AppState.stats[key];
                         dataFound = true;
@@ -720,7 +799,7 @@
 
                         bodyContainer.innerHTML += `
                             <tr data-promo="${currentPromo}" data-cycle="${currentCycle}">
-                                <td class="fw-bold bg-light">${currentClassName}</td>
+                                <td class="fw-bold bg-light text-dark">${currentClassName}</td>
                                 <td class="text-garcon-label">${eff_g}</td><td class="text-fille-label">${eff_f}</td><td class="text-total-label fw-bold">${eff_t}</td>
                                 <td class="text-garcon-label">${class_g}</td><td class="text-fille-label">${class_f}</td><td class="text-total-label fw-bold">${class_t}</td>
                                 <td class="text-total-label">${mt}</td><td class="text-total-label">${at}</td><td class="fw-bold">${nct}</td>
@@ -742,21 +821,23 @@
                 const rows = Array.from(bodyContainer.querySelectorAll('tr'));
                 let lastPromo = ''; let lastCycle = '';
 
-                const createSubTotalRow2 = (label, t) => {
+                const createSubTotalRow2 = (label, t, isCycle = false) => {
                     const p_inf650 = t.cl_t > 0 ? ((t.m65_t / t.cl_t) * 100).toFixed(2) + '%' : '0.00%';
                     const p_inf750 = t.cl_t > 0 ? ((t.m75_t / t.cl_t) * 100).toFixed(2) + '%' : '0.00%';
                     const p_m10 = t.cl_t > 0 ? ((t.m10_t / t.cl_t) * 100).toFixed(2) + '%' : '0.00%';
                     const p_sup10 = t.cl_t > 0 ? ((t.sup10_t / t.cl_t) * 100).toFixed(2) + '%' : '0.00%';
+                    const rowClass = isCycle ? "row-total-cycle" : "row-subtotal-promo";
+                    
                     return `
-                        <tr class="row-subtotal-promo text-dark">
+                        <tr class="${rowClass} text-dark">
                             <td class="text-uppercase text-start ps-2 fw-bold">${label}</td>
-                            <td class="text-garcon-label">${t.eff_g}</td><td class="text-fille-label">${t.eff_f}</td><td class="text-total-label">${t.eff_t}</td>
-                            <td class="text-garcon-label">${t.cl_g}</td><td class="text-fille-label">${t.cl_f}</td><td class="text-total-label">${t.cl_t}</td>
-                            <td>${t.mal_t}</td><td>${t.aba_t}</td><td>${t.nc_t}</td>
-                            <td class="text-garcon-label">${t.m65_g}</td><td class="text-fille-label">${t.m65_f}</td><td class="text-total-label">${t.m65_t}</td><td class="fw-bold text-muted">${p_inf650}</td>
-                            <td class="text-garcon-label">${t.m75_g}</td><td class="text-fille-label">${t.m75_f}</td><td class="text-total-label">${t.m75_t}</td><td class="fw-bold text-muted">${p_inf750}</td>
-                            <td class="text-garcon-label">${t.m10_g}</td><td class="text-fille-label">${t.m10_f}</td><td class="text-total-label">${t.m10_t}</td><td class="fw-bold text-danger">${p_m10}</td>
-                            <td class="text-garcon-label">${t.sup10_g}</td><td class="text-fille-label">${t.sup10_f}</td><td class="text-total-label">${t.sup10_t}</td><td class="fw-bold text-success">${p_sup10}</td>
+                            <td class="text-garcon-label">${t.eff_g}</td><td class="text-fille-label">${t.eff_f}</td><td class="text-total-label fw-bold">${t.eff_t}</td>
+                            <td class="text-garcon-label">${t.cl_g}</td><td class="text-fille-label">${t.cl_f}</td><td class="text-total-label fw-bold">${t.cl_t}</td>
+                            <td>${t.mal_t}</td><td>${t.aba_t}</td><td class="fw-bold">${t.nc_t}</td>
+                            <td class="text-garcon-label">${t.m65_g}</td><td class="text-fille-label">${t.m65_f}</td><td class="text-total-label fw-bold">${t.m65_t}</td><td class="fw-bold text-muted">${p_inf650}</td>
+                            <td class="text-garcon-label">${t.m75_g}</td><td class="text-fille-label">${t.m75_f}</td><td class="text-total-label fw-bold">${t.m75_t}</td><td class="fw-bold text-muted">${p_inf750}</td>
+                            <td class="text-garcon-label">${t.m10_g}</td><td class="text-fille-label">${t.m10_f}</td><td class="text-total-label fw-bold">${t.m10_t}</td><td class="fw-bold text-danger">${p_m10}</td>
+                            <td class="text-garcon-label">${t.sup10_g}</td><td class="text-fille-label">${t.sup10_f}</td><td class="text-total-label fw-bold">${t.sup10_t}</td><td class="fw-bold text-success">${p_sup10}</td>
                         </tr>`;
                 };
 
@@ -764,17 +845,17 @@
                 rows.forEach((row, idx) => {
                     const cPromo = row.getAttribute('data-promo'); const cCycle = row.getAttribute('data-cycle');
                     if (idx > 0 && cPromo !== lastPromo && promoTotals2[lastPromo]) {
-                        bodyContainer.innerHTML += createSubTotalRow2(`SOUS-TOTAL PROMO ${lastPromo}`, promoTotals2[lastPromo]);
+                        bodyContainer.innerHTML += createSubTotalRow2(`S/T PROMO ${lastPromo}`, promoTotals2[lastPromo], false);
                     }
                     if (idx > 0 && cCycle !== lastCycle && cycleTotals2[lastCycle]) {
-                        bodyContainer.innerHTML += createSubTotalRow2(`SOUS-TOTAL CYCLE ${lastCycle.toUpperCase()}`, cycleTotals2[lastCycle]);
+                        bodyContainer.innerHTML += createSubTotalRow2(`S/T CYCLE ${lastCycle.toUpperCase()}`, cycleTotals2[lastCycle], true);
                     }
                     bodyContainer.appendChild(row);
                     lastPromo = cPromo; lastCycle = cCycle;
                 });
 
-                if (promoTotals2[lastPromo]) bodyContainer.innerHTML += createSubTotalRow2(`SOUS-TOTAL PROMO ${lastPromo}`, promoTotals2[lastPromo]);
-                if (cycleTotals2[lastCycle]) bodyContainer.innerHTML += createSubTotalRow2(`SOUS-TOTAL CYCLE ${lastCycle.toUpperCase()}`, cycleTotals2[lastCycle]);
+                if (promoTotals2[lastPromo]) bodyContainer.innerHTML += createSubTotalRow2(`S/T PROMO ${lastPromo}`, promoTotals2[lastPromo], false);
+                if (cycleTotals2[lastCycle]) bodyContainer.innerHTML += createSubTotalRow2(`S/T CYCLE ${lastCycle.toUpperCase()}`, cycleTotals2[lastCycle], true);
 
                 const global_p_inf650 = finalTotals.cl_t > 0 ? ((finalTotals.m65_t / finalTotals.cl_t) * 100).toFixed(2) + '%' : '0.00%';
                 const global_p_inf750 = finalTotals.cl_t > 0 ? ((finalTotals.m75_t / finalTotals.cl_t) * 100).toFixed(2) + '%' : '0.00%';
@@ -784,13 +865,13 @@
                 bodyContainer.innerHTML += `
                     <tr class="row-total-establishment text-dark">
                         <td class="text-uppercase fw-bold">TOTAL ÉTABLISSEMENT</td>
-                        <td class="text-garcon-label">${finalTotals.eff_g}</td><td class="text-fille-label">${finalTotals.eff_f}</td><td class="text-total-label">${finalTotals.eff_t}</td>
-                        <td class="text-garcon-label">${finalTotals.cl_g}</td><td class="text-fille-label">${finalTotals.cl_f}</td><td class="text-total-label">${finalTotals.cl_t}</td>
-                        <td class="text-total-label">${finalTotals.mal_t}</td><td class="text-total-label">${finalTotals.aba_t}</td><td class="text-total-label">${finalTotals.nc_t}</td>
-                        <td class="text-garcon-label">${finalTotals.m65_g}</td><td class="text-fille-label">${finalTotals.m65_f}</td><td class="text-total-label">${finalTotals.m65_t}</td><td class="fw-bold text-muted">${global_p_inf650}</td>
-                        <td class="text-garcon-label">${finalTotals.m75_g}</td><td class="text-fille-label">${finalTotals.m75_f}</td><td class="text-total-label">${finalTotals.m75_t}</td><td class="fw-bold text-muted">${global_p_inf750}</td>
-                        <td class="text-garcon-label">${finalTotals.m10_g}</td><td class="text-fille-label">${finalTotals.m10_f}</td><td class="text-total-label">${finalTotals.m10_t}</td><td class="fw-bold text-danger">${global_p_m10}</td>
-                        <td class="text-garcon-label">${finalTotals.sup10_g}</td><td class="text-fille-label">${finalTotals.sup10_f}</td><td class="text-total-label">${finalTotals.sup10_t}</td><td class="fw-bold text-success">${global_p_sup10}</td>
+                        <td class="text-garcon-label">${finalTotals.eff_g}</td><td class="text-fille-label">${finalTotals.eff_f}</td><td class="text-total-label fw-bold">${finalTotals.eff_t}</td>
+                        <td class="text-garcon-label">${finalTotals.cl_g}</td><td class="text-fille-label">${finalTotals.cl_f}</td><td class="text-total-label fw-bold">${finalTotals.cl_t}</td>
+                        <td class="text-total-label">${finalTotals.mal_t}</td><td class="text-total-label">${finalTotals.aba_t}</td><td class="text-total-label fw-bold">${finalTotals.nc_t}</td>
+                        <td class="text-garcon-label">${finalTotals.m65_g}</td><td class="text-fille-label">${finalTotals.m65_f}</td><td class="text-total-label fw-bold">${finalTotals.m65_t}</td><td class="fw-bold text-muted">${global_p_inf650}</td>
+                        <td class="text-garcon-label">${finalTotals.m75_g}</td><td class="text-fille-label">${finalTotals.m75_f}</td><td class="text-total-label fw-bold">${finalTotals.m75_t}</td><td class="fw-bold text-muted">${global_p_inf750}</td>
+                        <td class="text-garcon-label">${finalTotals.m10_g}</td><td class="text-fille-label">${finalTotals.m10_f}</td><td class="text-total-label fw-bold">${finalTotals.m10_t}</td><td class="fw-bold text-danger">${global_p_m10}</td>
+                        <td class="text-garcon-label">${finalTotals.sup10_g}</td><td class="text-fille-label">${finalTotals.sup10_f}</td><td class="text-total-label fw-bold">${finalTotals.sup10_t}</td><td class="fw-bold text-success">${global_p_sup10}</td>
                     </tr>
                 `;
             } else {
@@ -849,7 +930,6 @@
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        // Affiche un bouton d'installation personnalisé si présent
         const btn = document.getElementById('installBtn');
         if(btn) btn.style.display = 'block';
       });
