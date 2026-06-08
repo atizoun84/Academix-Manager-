@@ -214,7 +214,7 @@
         @media print {
             @page {
                 size: landscape;
-                margin: 10mm 10mm 15mm 10mm;
+                margin: 8mm 6mm 12mm 6mm;
             }
             body {
                 background-color: #ffffff;
@@ -270,6 +270,7 @@
                 border-radius: 8px !important;
                 overflow: hidden !important;
                 border: 1px solid #000000 !important;
+                font-size: 0.7rem !important;
             }
             .custom-printed-table thead {
                 display: table-header-group !important;
@@ -282,6 +283,7 @@
                 border: 1px solid #000000 !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+                padding: 4px 3px !important;
             }
             .custom-printed-table tbody tr:nth-child(even) {
                 background-color: #f2f2f2 !important;
@@ -309,11 +311,33 @@
                 left: 0;
                 right: 0;
                 text-align: center;
-                font-size: 0.75rem !important;
+                font-size: 0.7rem !important;
                 border-top: 1px solid #cbd5e1;
                 padding-top: 4px;
                 font-weight: 500;
                 color: #475569 !important;
+            }
+            
+            /* Ajustement spécifique pour éviter le débordement */
+            .custom-printed-table th,
+            .custom-printed-table td {
+                word-break: break-word;
+                white-space: normal;
+            }
+            
+            /* Ajustement des colonnes pour mieux s'adapter au format paysage */
+            .custom-printed-table th:nth-child(1),
+            .custom-printed-table td:nth-child(1) {
+                min-width: 80px;
+            }
+            
+            .custom-printed-table th:nth-child(2),
+            .custom-printed-table th:nth-child(3),
+            .custom-printed-table th:nth-child(4),
+            .custom-printed-table td:nth-child(2),
+            .custom-printed-table td:nth-child(3),
+            .custom-printed-table td:nth-child(4) {
+                min-width: 50px;
             }
         }
     </style>
@@ -829,7 +853,7 @@
                         <td class="fw-semibold text-wrap" style="max-width: 110px;">${finalTotals4.max_nom}</td>
                         <td class="fw-bold text-danger">${displayGlobalMinNote}</td>
                         <td class="fw-semibold text-wrap" style="max-width: 110px;">${finalTotals4.min_nom}</td>
-                    </table>
+                    </tr>
                 `;
             } else {
                 bodyContainer.innerHTML = `<tr><td colspan="40" class="text-muted py-3 text-center">Aucune statistique disponible pour générer le Tableau 4.</td></tr>`;
