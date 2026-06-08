@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Academix Manager - Saisie des Statistiques</title>
-    <link class="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="logoapp.png">
+    <title>Academix Manager</title>
+    <link rel="manifest" href="manifest.json">
+    <link class="apple-touch-icon" href="logoapp.png">
     <meta name="theme-color" content="#075E54">
-
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
@@ -72,23 +72,6 @@
             color: #0b3c5d !important;
         }
 
-        /* Surcharges spécifiques exigées pour la saisie des statistiques (Garçons, Filles, Totaux) */
-        .input-garcon {
-            color: #00a8ff !important; /* Bleu clair */
-            font-weight: bold !important;
-            font-size: 1.3rem !important;
-        }
-        .input-fille {
-            color: #e84118 !important; /* Rouge */
-            font-weight: bold !important;
-            font-size: 1.3rem !important;
-        }
-        .input-total {
-            color: #000000 !important; /* Noir */
-            font-weight: bold !important;
-            font-size: 1.3rem !important;
-        }
-
         /* Cards */
         .card {
             border: none;
@@ -145,7 +128,7 @@
         .checkmark-icon {
             font-size: 5rem;
             color: var(--wa-light-green);
-            animation: bounceIn 0.5s ease forward;
+            animation: bounceIn 0.5s ease forwards;
         }
         @keyframes bounceIn {
             0% { transform: scale(0.3); opacity: 0; }
@@ -154,46 +137,23 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
-        /* Nouveaux styles spécifiques ajoutés de façon isolée */
-        .text-garcon-label { color: #00a8ff !important; font-weight: bold; }
-        .text-fille-label { color: #e84118 !important; font-weight: bold; }
-        .text-total-label { color: #000000 !important; font-weight: bold; }
-
-        /* Style pour rendre le tableau récapitulatif flottant de façon ergonomique */
-        .sticky-summary-table {
-            position: -webkit-sticky;
-            position: sticky;
-            top: 75px;
-            z-index: 1020;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        /* Style pour le bouton flottant */
-        #installBtn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 9999;
-        }
-
-        /* Style isolé pour le bouton de contrôle vocal */
-        #audioToggleBtn {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 9999;
-        }
-
-        /* Badge de connectivité réseau permanent */
-        .network-badge {
+        /* Badge de connectivité permanent */
+        .connection-status-badge {
             font-size: 0.8rem;
             font-weight: bold;
-            padding: 4px 8px;
-            border-radius: 12px;
+            padding: 5px 10px;
+            border-radius: 20px;
             display: inline-flex;
             align-items: center;
             gap: 5px;
+        }
+        .status-online {
+            background-color: var(--wa-light-green);
+            color: var(--wa-white);
+        }
+        .status-offline {
+            background-color: #e53935;
+            color: var(--wa-white);
         }
     </style>
 </head>
@@ -202,14 +162,10 @@
     <div id="successOverlay" class="success-overlay">
         <div class="success-anim-box">
             <div class="checkmark-icon" id="overlayIcon">✓</div>
-            <h2 class="mt-3" id="overlayTitle">Opération Réussie !</h2>
-            <p class="text-white-50" id="overlayMessage">Les données ont été enregistrées.</p>
+            <h2 class="mt-3" id="overlayTitle">Classes Générées avec Succès !</h2>
+            <p class="text-white-50" id="overlayMessage">La promotion a été ajoutée à la structure.</p>
         </div>
     </div>
-
-    <button id="installBtn" onclick="installPWA()" style="display:none;" class="btn btn-warning shadow-lg">Installer l'App</button>
-    
-    <button id="audioToggleBtn" onclick="toggleAudioSpeech()" class="btn btn-secondary shadow-lg fw-bold">🔊 Lecture Vocale : OFF</button>
 
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
         <div class="container-fluid">
@@ -217,13 +173,13 @@
                 <img src="logoceg.png" alt="Logo" height="40" class="me-2" style="object-fit: contain;">
                 <div>
                     <strong>Academix Manager</strong>
-                    <span id="pageHeaderTitle" class="navbar-brand-sub">Saisie des Statistiques Périodiques</span>
+                    <span id="pageHeaderTitle" class="navbar-brand-sub">Configuration de l'Établissement</span>
                 </div>
             </a>
             
-            <div class="ms-auto me-3">
-                <span id="networkStatusBadge" class="network-badge bg-secondary text-white">
-                    <span>⚪</span> Initialisation...
+            <div class="ms-auto me-2 d-flex align-items-center">
+                <span id="connectionBadge" class="connection-status-badge status-online">
+                    <span id="statusDot">●</span> <span id="statusText">En ligne</span>
                 </span>
             </div>
 
@@ -233,8 +189,8 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link nav-home" href="index.html">ACCUEIL</a></li>
-                    <li class="nav-item"><a class="nav-link nav-config" href="configuration.html">CONFIGURATION</a></li>
-                    <li class="nav-item"><a class="nav-link nav-saisie active" href="saisie.html">SAISIE STATISTIQUES</a></li>
+                    <li class="nav-item"><a class="nav-link nav-config active" href="configuration.html">CONFIGURATION</a></li>
+                    <li class="nav-item"><a class="nav-link nav-saisie" href="saisie.html">SAISIE STATISTIQUES</a></li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle nav-tableaux" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             TABLEAUX & RÉSULTATS
@@ -246,424 +202,135 @@
                             <li><a class="dropdown-item nav-tab4" href="tableau4.html">Récapitulatif des résultats</a></li>
                         </ul>
                     </li>
+                    <li class="nav-item ms-lg-2">
+                        <button id="installBtn" class="btn btn-warning btn-sm mt-2 mt-lg-1" style="display:none;">Installer l'App</button>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
 
     <div class="container mt-4">
-        
-        <div class="card sticky-summary-table d-none" id="summaryTableContainer">
-            <div class="card-header bg-white py-2">
-                <span class="text-danger fw-bold fs-5" id="summaryTableTitle">Statistiques</span>
-                
-                <div class="table-responsive mt-2">
-                    <table class="table table-bordered table-sm text-center align-middle mb-0 bg-white" style="font-size: 0.9rem;">
-                        <thead class="table-light text-secondary">
-                            <tr>
-                                <th rowspan="2">Sexe</th>
-                                <th rowspan="2" class="text-dark">EFFECTIF</th>
-                                <th rowspan="2" class="text-success">CLASSÉS</th>
-                                <th colspan="3" class="text-warning">NON CLASSÉS</th>
-                                <th rowspan="2" class="text-primary">NB MOYENNES</th>
-                            </tr>
-                            <tr>
-                                <th>MALADES</th>
-                                <th>ABANDONS</th>
-                                <th class="table-dark text-white">TOTAL</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="text-garcon-label">Garçons</td>
-                                <td id="summary_eff_g" class="text-garcon-label">0</td>
-                                <td id="summary_class_g" class="text-garcon-label">0</td>
-                                <td id="summary_mal_g" class="text-garcon-label">0</td>
-                                <td id="summary_aba_g" class="text-garcon-label">0</td>
-                                <td id="summary_nonclass_tot_g" class="text-garcon-label fw-bold bg-light">0</td>
-                                <td id="summary_moy_g" class="text-garcon-label">0</td>
-                            </tr>
-                            <tr>
-                                <td class="text-fille-label">Filles</td>
-                                <td id="summary_eff_f" class="text-fille-label">0</td>
-                                <td id="summary_class_f" class="text-fille-label">0</td>
-                                <td id="summary_mal_f" class="text-fille-label">0</td>
-                                <td id="summary_aba_f" class="text-fille-label">0</td>
-                                <td id="summary_nonclass_tot_f" class="text-fille-label fw-bold bg-light">0</td>
-                                <td id="summary_moy_f" class="text-fille-label">0</td>
-                            </tr>
-                            <tr class="table-light fw-bold text-dark">
-                                <td class="text-total-label">Total</td>
-                                <td id="summary_eff_t" class="text-total-label">0</td>
-                                <td id="summary_class_t" class="text-total-label">0</td>
-                                <td id="summary_mal_t" class="text-total-label">0</td>
-                                <td id="summary_aba_t" class="text-total-label">0</td>
-                                <td id="summary_nonclass_tot_t" class="text-total-label fw-bold table-secondary">0</td>
-                                <td id="summary_moy_t" class="text-total-label">0</td>
-                            </tr>
-                        </tbody>
-                    </table>
+        <div class="card" id="configCard">
+            <div class="card-header">1. Configuration de l'établissement</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Nom de l'établissement</label>
+                        <input type="text" id="schoolName" class="form-control" placeholder="Ex: CEG Gamia">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Année Scolaire</label>
+                        <input type="text" id="schoolYear" class="form-control" placeholder="Ex: 2026-2027">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Nom du Directeur</label>
+                        <input type="text" id="directorName" class="form-control" placeholder="Ex: M. Jean GOMEZ">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Nom du Censeur</label>
+                        <input type="text" id="censorName" class="form-control" placeholder="Ex: Mme Marie COSSI">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Cycles disponibles</label><br>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="cycle1" value="Premier cycle" checked>
+                            <label class="form-check-label fw-bold" for="cycle1">Premier cycle</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="cycle2" value="Second cycle">
+                            <label class="form-check-label fw-bold" for="cycle2">Second cycle</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Période académique</label>
+                        <select id="academicPeriod" class="form-select">
+                            <option value="Trimestres">Trimestres</option>
+                            <option value="Semestres">Semestres</option>
+                        </select>
+                        <div id="periodDetails" class="form-text text-success fw-bold mt-2">Premier trimestre, second trimestre, troisième trimestre</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Code secret de sécurité</label>
+                        <input type="password" id="secretCodeInput" class="form-control" value="1234" placeholder="Code secret">
+                    </div>
+                    <div class="col-12 text-end">
+                        <button class="btn btn-danger font-weight-bold" id="btnLock">Verrouiller la configuration</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="card" id="saisieCard">
+        <div class="card">
+            <div class="card-header">2. Gestion des Promotions et Classes</div>
             <div class="card-body">
-                <div class="text-center mb-4">
-                    <h1 id="displaySchoolName" class="fw-bold text-uppercase" style="color: var(--wa-dark-green); font-size: 2.5rem;">CEG 1 BEMBÈRÈKÈ</h1>
-                    <h3 id="displaySchoolYear" class="text-secondary fw-semibold">Année Scolaire : 2025-2026</h3>
-                </div>
-
-                <div id="instructionMessage" class="alert alert-info text-center fw-bold d-none" role="alert">
-                    💡 Statistiques enregistrées ! Veuillez sélectionner une autre classe pour continuer la saisie.
-                </div>
-
-                <hr class="my-4">
-
-                <div class="row g-3 mb-4">
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Période / Semestre</label>
-                        <select id="selectSemestre" class="form-select" onchange="handlePeriodOrSemesterChange()">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Cycle</label>
+                        <select id="promoCycle" class="form-select">
+                            <option value="Premier cycle">Premier cycle</option>
+                            <option value="Second cycle">Second cycle</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Cycle</label>
-                        <select id="selectCycle" class="form-select" onchange="handleCycleChange()">
-                            <option value="">-- Sélectionner un cycle --</option>
-                        </select>
+                    <div class="col-md-3">
+                        <label class="form-label">Nom de la promotion</label>
+                        <input type="text" id="promoName" class="form-control" placeholder="Ex: 6ème">
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold d-flex justify-content-between">
-                            <span>Classe</span>
-                            <span id="statusIndicator" class="badge bg-secondary">Incomplet</span>
-                        </label>
-                        <select id="selectClasse" class="form-select" onchange="loadStatsForCurrentSelection()" disabled>
-                            <option value="">-- Sélectionner une classe --</option>
-                        </select>
+                    <div class="col-md-3">
+                        <label class="form-label">Séries ou Mentions</label>
+                        <input type="text" id="promoSections" class="form-control" placeholder="Ex: A, B, C ou Général">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Nombre de classes</label>
+                        <input type="number" id="classCount" class="form-control" min="1" placeholder="Ex: 4">
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-wa" id="btnAddPromotion">Générer les classes</button>
                     </div>
                 </div>
-
-                <form id="statsForm" oninput="checkFormCompletion(); updateSummaryTable();" style="display: none;">
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <div class="p-3 border rounded bg-light">
-                                <h5 class="fw-bold mb-3" style="color: var(--wa-teal);">Plus forte moyenne</h5>
-                                <div class="row g-2 mb-2">
-                                    <div class="col-6">
-                                        <label class="small fw-bold text-muted">Garçon</label>
-                                        <input type="number" step="0.01" min="0" max="20" id="stat_fort_g" class="form-control input-garcon" oninput="compareAverages()" required>
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="small fw-bold text-muted">Fille</label>
-                                        <input type="number" step="0.01" min="0" max="20" id="stat_fort_f" class="form-control input-fille" oninput="compareAverages()" required>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="p-3 border rounded bg-light">
-                                <h5 class="fw-bold mb-3" style="color: #b33939;">Plus faible moyenne</h5>
-                                <div class="row g-2 mb-2">
-                                    <div class="col-6">
-                                        <label class="small fw-bold text-muted">Garçon</label>
-                                        <input type="number" step="0.01" min="0" max="20" id="stat_faible_g" class="form-control input-garcon" oninput="compareAverages()" required>
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="small fw-bold text-muted">Fille</label>
-                                        <input type="number" step="0.01" min="0" max="20" id="stat_faible_f" class="form-control input-fille" oninput="compareAverages()" required>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="p-3 border rounded bg-light">
-                                <h5 class="fw-bold mb-3 text-secondary">Non classés : Malades</h5>
-                                <div class="row g-3">
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Garçon</label>
-                                        <input type="number" min="0" max="100" id="stat_malades_g" class="form-control input-garcon" oninput="sumTranche('malades')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Fille</label>
-                                        <input type="number" min="0" max="100" id="stat_malades_f" class="form-control input-fille" oninput="sumTranche('malades')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Total</label>
-                                        <input type="number" id="stat_malades_t" class="form-control bg-white input-total" readonly disabled>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="p-3 border rounded bg-light">
-                                <h5 class="fw-bold mb-3 text-secondary">Non classés : Abandons</h5>
-                                <div class="row g-3">
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Garçon</label>
-                                        <input type="number" min="0" max="100" id="stat_abandons_g" class="form-control input-garcon" oninput="sumTranche('abandons')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Fille</label>
-                                        <input type="number" min="0" max="100" id="stat_abandons_f" class="form-control input-fille" oninput="sumTranche('abandons')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Total</label>
-                                        <input type="number" id="stat_abandons_t" class="form-control bg-white input-total" readonly disabled>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="p-3 border rounded bg-light">
-                                <h5 class="fw-bold mb-3 text-danger">Moyenne &lt; 6,50</h5>
-                                <div class="row g-3">
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Garçon</label>
-                                        <input type="number" min="0" max="100" id="stat_inf650_g" class="form-control input-garcon" oninput="sumTranche('inf650')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Fille</label>
-                                        <input type="number" min="0" max="100" id="stat_inf650_f" class="form-control input-fille" oninput="sumTranche('inf650')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Total</label>
-                                        <input type="number" id="stat_inf650_t" class="form-control bg-white input-total" readonly disabled>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="p-3 border rounded bg-light">
-                                <h5 class="fw-bold mb-3 text-warning">6,5 &le; M &lt; 7,5</h5>
-                                <div class="row g-3">
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Garçon</label>
-                                        <input type="number" min="0" max="100" id="stat_650_750_g" class="form-control input-garcon" oninput="sumTranche('650_750')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Fille</label>
-                                        <input type="number" min="0" max="100" id="stat_650_750_f" class="form-control input-fille" oninput="sumTranche('650_750')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Total</label>
-                                        <input type="number" id="stat_650_750_t" class="form-control bg-white input-total" readonly disabled>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="p-3 border rounded bg-light">
-                                <h5 class="fw-bold mb-3 text-warning">7,5 &le; M &lt; 9</h5>
-                                <div class="row g-3">
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Garçon</label>
-                                        <input type="number" min="0" max="100" id="stat_750_900_g" class="form-control input-garcon" oninput="sumTranche('750_900')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Fille</label>
-                                        <input type="number" min="0" max="100" id="stat_750_900_f" class="form-control input-fille" oninput="sumTranche('750_900')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Total</label>
-                                        <input type="number" id="stat_750_900_t" class="form-control bg-white input-total" readonly disabled>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="p-3 border rounded bg-light">
-                                <h5 class="fw-bold mb-3" style="color: #d6a211;">9 &le; M &lt; 10</h5>
-                                <div class="row g-3">
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Garçon</label>
-                                        <input type="number" min="0" max="100" id="stat_900_1000_g" class="form-control input-garcon" oninput="sumTranche('900_1000')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Fille</label>
-                                        <input type="number" min="0" max="100" id="stat_900_1000_f" class="form-control input-fille" oninput="sumTranche('900_1000')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Total</label>
-                                        <input type="number" id="stat_900_1000_t" class="form-control bg-white input-total" readonly disabled>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="p-3 border rounded bg-light">
-                                <h5 class="fw-bold mb-3" style="color: #26de81;">10 &le; M &lt; 11</h5>
-                                <div class="row g-3">
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Garçon</label>
-                                        <input type="number" min="0" max="100" id="stat_1000_1100_g" class="form-control input-garcon" oninput="sumTranche('1000_1100')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Fille</label>
-                                        <input type="number" min="0" max="100" id="stat_1000_1100_f" class="form-control input-fille" oninput="sumTranche('1000_1100')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Total</label>
-                                        <input type="number" id="stat_1000_1100_t" class="form-control bg-white input-total" readonly disabled>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="p-3 border rounded bg-light">
-                                <h5 class="fw-bold mb-3 text-success">11 &le; M &lt; 12</h5>
-                                <div class="row g-3">
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Garçon</label>
-                                        <input type="number" min="0" max="100" id="stat_1100_1200_g" class="form-control input-garcon" oninput="sumTranche('1100_1200')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Fille</label>
-                                        <input type="number" min="0" max="100" id="stat_1100_1200_f" class="form-control input-fille" oninput="sumTranche('1100_1200')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Total</label>
-                                        <input type="number" id="stat_1100_1200_t" class="form-control bg-white input-total" readonly disabled>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="p-3 border rounded bg-light">
-                                <h5 class="fw-bold mb-3 text-success">12 &le; M &lt; 14</h5>
-                                <div class="row g-3">
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Garçon</label>
-                                        <input type="number" min="0" max="100" id="stat_1200_1400_g" class="form-control input-garcon" oninput="sumTranche('1200_1400')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Fille</label>
-                                        <input type="number" min="0" max="100" id="stat_1200_1400_f" class="form-control input-fille" oninput="sumTranche('1200_1400')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Total</label>
-                                        <input type="number" id="stat_1200_1400_t" class="form-control bg-white input-total" readonly disabled>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="p-3 border rounded bg-light">
-                                <h5 class="fw-bold mb-3 style-color" style="color: var(--wa-dark-green);">14 &le; M &lt; 16</h5>
-                                <div class="row g-3">
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Garçon</label>
-                                        <input type="number" min="0" max="100" id="stat_1400_1600_g" class="form-control input-garcon" oninput="sumTranche('1400_1600')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Fille</label>
-                                        <input type="number" min="0" max="100" id="stat_1400_1600_f" class="form-control input-fille" oninput="sumTranche('1400_1600')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Total</label>
-                                        <input type="number" id="stat_1400_1600_t" class="form-control bg-white input-total" readonly disabled>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="p-3 border rounded bg-light">
-                                <h5 class="fw-bold mb-3 text-primary">M &ge; 16</h5>
-                                <div class="row g-3">
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Garçon</label>
-                                        <input type="number" min="0" max="100" id="stat_sup1600_g" class="form-control input-garcon" oninput="sumTranche('sup1600')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Fille</label>
-                                        <input type="number" min="0" max="100" id="stat_sup1600_f" class="form-control input-fille" oninput="sumTranche('sup1600')" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Total</label>
-                                        <input type="number" id="stat_sup1600_t" class="form-control bg-white input-total" readonly disabled>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row g-4 mt-2">
-                        <div class="col-md-6">
-                            <div class="p-3 border rounded" style="background-color: #eafaf1; border-color: #25D366 !important;">
-                                <h5 class="fw-bold mb-3" style="color: var(--wa-teal);">🏆 Nom de la Meilleure Moyenne</h5>
-                                <div class="row g-2 align-items-end">
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Moyenne</label>
-                                        <input type="text" id="bilan_fort_val" class="form-control fw-bold text-success" style="font-size: 1.2rem;" readonly disabled>
-                                    </div>
-                                    <div class="col-8">
-                                        <label class="small fw-bold text-muted">Nom & Prénom(s) de l'élève</label>
-                                        <input type="text" id="nom_fort_eleve" class="form-control" required placeholder="Ex: DOE John">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="p-3 border rounded" style="background-color: #fbecec; border-color: #e84118 !important;">
-                                <h5 class="fw-bold mb-3" style="color: #b33939;">⚠️ Nom de la Plus Faible Moyenne</h5>
-                                <div class="row g-2 align-items-end">
-                                    <div class="col-4">
-                                        <label class="small fw-bold text-muted">Moyenne</label>
-                                        <input type="text" id="bilan_faible_val" class="form-control fw-bold text-danger" style="font-size: 1.2rem;" readonly disabled>
-                                    </div>
-                                    <div class="col-8">
-                                        <label class="small fw-bold text-muted">Nom & Prénom(s) de l'élève</label>
-                                        <input type="text" id="nom_faible_eleve" class="form-control" required placeholder="Ex: DOE Jane">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="text-end mt-4">
-                        <button type="button" class="btn btn-wa px-5 py-2 fs-5 shadow-sm" onclick="saveStatsData()">
-                            💾 Sauvegarder les statistiques
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
 
         <div class="text-center mb-5">
-            <button class="btn btn-outline-secondary" onclick="toggleHiddenData()">Afficher / Masquer la base de données cloud</button>
+            <button class="btn btn-outline-secondary" id="btnToggleHiddenData">Afficher / Masquer la base de données locale</button>
             <div id="hiddenDataContainer" class="text-start mt-3 shadow-sm">
-                <h5 class="border-bottom pb-2">Récapitulatif de l'Établissement (Données Cloud)</h5>
+                <h5 class="border-bottom pb-2">Récapitulatif de l'Établissement</h5>
                 <div id="renderedData">
                     <p class="text-muted">Aucune donnée générée pour le moment.</p>
                 </div>
+                
+                <div class="mt-4 pt-3 border-top">
+                    <h6 class="text-danger fw-bold mb-3">⚙️ Actions de Maintenance & Transfert</h6>
+                    <div class="row g-2">
+                        <div class="col-sm-6 col-md-3">
+                            <button class="btn btn-wa-dark w-100 btn-sm font-weight-bold" id="btnExportJSON">📤 Exporter en JSON</button>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <button class="btn btn-secondary w-100 btn-sm font-weight-bold" id="btnTriggerImport">📥 Importer un JSON</button>
+                            <input type="file" id="importJsonFile" accept=".json" style="display: none;">
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <button class="btn btn-outline-danger w-100 btn-sm font-weight-bold" id="btnClearConfig">🗑️ Purger Configuration</button>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <button class="btn btn-danger w-100 btn-sm font-weight-bold" id="btnClearStats">❌ Purger Saisie Stats</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-
     </div>
 
-    <footer class="text-center py-3 mt-5 border-top bg-white text-muted small position-relative bottom-0 start-0 w-100">
+    <footer class="text-center py-3 mt-5 border-top bg-white text-muted small">
         Concepteur : <strong>Atizoun Plateny AMOUSSOU</strong> | Email : <a href="mailto:atizoun@gmail.com">atizoun@gmail.com</a> | Tél : 01 97 74 40 35
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, child, get } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue, get, child } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
 
-        // Configuration fournie par l'utilisateur
         const firebaseConfig = {
             apiKey: "AIzaSyADkksLVNIJ4dxSU-LPC-2RKPI9L6FYQUk",
             authDomain: "academix-manager.firebaseapp.com",
@@ -674,131 +341,162 @@
             databaseURL: "https://academix-manager-default-rtdb.europe-west1.firebasedatabase.app/"
         };
 
-        // Initialisation de l'application Firebase
+        // Initialisation de Firebase
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        const dbRef = ref(db, "AppState");
 
         /**
          * ÉTAT GLOBAL DE L'APPLICATION
-         * Synchronisé en temps réel avec Firebase Realtime Database sur la branche "AppState"
          */
-        window.AppState = {
+        let AppState = {
             isLocked: false,
             secretCode: '1234',
-            school: {
-                name: '',
-                year: '',
-                director: '',
-                censor: '',
-                academicPeriod: 'Trimestres',
-                cycles: []
-            },
-            promotions: [], 
-            stats: {}       
+            school: { name: '', year: '', director: '', censor: '', academicPeriod: 'Trimestres', cycles: [] },
+            promotions: [],
+            stats: {}
         };
 
-        // Rendre l'instance de la base accessible globalement
-        window.FirebaseDB = db;
-        window.FirebaseRefs = { ref, set, onValue, child, get };
-
-        // Gestionnaire permanent du badge de connectivité réseau (.info/connected)
-        const connectedRef = ref(db, ".info/connected");
-        onValue(connectedRef, (snap) => {
-            const badge = document.getElementById('networkStatusBadge');
-            if (snap.val() === true) {
-                badge.className = "network-badge bg-success text-white";
-                badge.innerHTML = "<span>●</span> En ligne";
+        // Gestion de l'indicateur permanent de connectivité réseau
+        function updateConnectionStatus() {
+            const badge = document.getElementById('connectionBadge');
+            const statusText = document.getElementById('statusText');
+            if (navigator.onLine) {
+                badge.className = "connection-status-badge status-online";
+                statusText.innerText = "En ligne";
             } else {
-                badge.className = "network-badge bg-danger text-white";
-                badge.innerHTML = "<span>○</span> Hors ligne (Cache local)";
+                badge.className = "connection-status-badge status-offline";
+                statusText.innerText = "Hors ligne";
             }
-        });
+        }
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        updateConnectionStatus();
 
-        // Écouteur permanent sur l'ensemble de la branche applicative "AppState" unifiée
-        const appStateRef = ref(db, "AppState");
-        onValue(appStateRef, (snapshot) => {
+        // Écoute des changements de la base de données Firebase (Source de vérité)
+        onValue(dbRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                window.AppState = data;
-                if (!window.AppState.stats) window.AppState.stats = {};
-                if (!window.AppState.promotions) window.AppState.promotions = [];
-                if (!window.AppState.school) window.AppState.school = {};
-            }
-            
-            // Exécution des procédures de mise à jour d'interface héritées
-            initializeInterfaceMetaData();
-            populatePeriods();
-            populateCycles();
-            updateHiddenView();
-            updateClassesStatusDisplay();
-        });
-    </script>
-
-    <script>
-        // État de la fonctionnalité de lecture audio
-        let isAudioSpeechEnabled = false;
-
-        // Chargement initial au démarrage lié aux cycles natifs
-        window.addEventListener('DOMContentLoaded', () => {
-            resetSummaryTable();
-            setupNumericConstraints();
-            setupAudioSpeechListeners(); 
-            setupEnterNavigation();     
-        });
-
-        // Logique unifiée de normalisation équivalente à la structure de configuration
-        function normalizeCycleValue(cycle) {
-            if (!cycle) return '';
-            return cycle.trim().toLowerCase().replace(/\s+/g, '');
-        }
-
-        // Mutation intelligente du sélecteur de période basé sur AppState.school.academicPeriod
-        function populatePeriods() {
-            const selectSemestre = document.getElementById('selectSemestre');
-            if (!selectSemestre) return;
-
-            const previousValue = selectSemestre.value;
-            selectSemestre.innerHTML = '';
-            const periodType = AppState.school.academicPeriod || 'Trimestres';
-
-            if (periodType === 'Semestres') {
-                selectSemestre.innerHTML = `
-                    <option value="1er Semestre">1er Semestre</option>
-                    <option value="2nd Semestre">2nd Semestre</option>
-                    <option value="Annuel">Annuel</option>
-                `;
-            } else {
-                selectSemestre.innerHTML = `
-                    <option value="1er Trimestre">1er Trimestre</option>
-                    <option value="2nd Trimestre">2nd Trimestre</option>
-                    <option value="3ème Trimestre">3ème Trimestre</option>
-                    <option value="Annuel">Annuel</option>
-                `;
-            }
-            if(previousValue && selectSemestre.querySelector(`option[value="${previousValue}"]`)) {
-                selectSemestre.value = previousValue;
-            }
-        }
-
-        function handlePeriodOrSemesterChange() {
-            updateClassesStatusDisplay();
-            loadStatsForCurrentSelection();
-        }
-
-        function deletePromotion(id) {
-            const savedCode = AppState.secretCode || '1234';
-            const confirmation = prompt("Entrez le code secret pour confirmer la suppression de cette promotion :");
-            
-            if (confirmation === savedCode) {
-                AppState.promotions = AppState.promotions.filter(p => p.id !== id);
+                AppState = data;
+                if (!AppState.promotions) AppState.promotions = [];
+                if (!AppState.stats) AppState.stats = {};
+                if (!AppState.school) AppState.school = { name: '', year: '', director: '', censor: '', academicPeriod: 'Trimestres', cycles: [] };
                 
-                // Synchronisation Cloud Instantanée sur la clé unifiée
-                if (window.FirebaseDB) {
-                    window.FirebaseRefs.set(window.FirebaseRefs.ref(window.FirebaseDB, "AppState/promotions"), AppState.promotions);
+                // Remplissage des champs de l'interface utilisateur
+                document.getElementById('secretCodeInput').value = AppState.secretCode || '1234';
+                document.getElementById('academicPeriod').value = AppState.school.academicPeriod || 'Trimestres';
+                document.getElementById('schoolName').value = AppState.school.name || '';
+                document.getElementById('schoolYear').value = AppState.school.year || '';
+                document.getElementById('directorName').value = AppState.school.director || '';
+                document.getElementById('censorName').value = AppState.school.censor || '';
+                
+                if (AppState.school.cycles) {
+                    document.getElementById('cycle1').checked = AppState.school.cycles.includes('Premier cycle');
+                    document.getElementById('cycle2').checked = AppState.school.cycles.includes('Second cycle');
                 }
-            } else if (confirmation !== null) {
-                alert("Code secret incorrect. Suppression annulée.");
+                applyLockUI(AppState.isLocked);
+                updateHiddenView();
+                handlePeriodChangeDisplay();
             }
+        });
+
+        function saveToFirebase() {
+            set(dbRef, AppState).catch((error) => console.error("Erreur de sauvegarde Firebase:", error));
+        }
+
+        function handlePeriodChangeDisplay() {
+            const period = document.getElementById('academicPeriod').value;
+            const detailsDiv = document.getElementById('periodDetails');
+            detailsDiv.innerText = (period === 'Trimestres') ? "Premier trimestre, second trimestre, troisième trimestre" : "Premier semestre, second semestre";
+        }
+
+        document.getElementById('academicPeriod').addEventListener('change', () => {
+            const period = document.getElementById('academicPeriod').value;
+            handlePeriodChangeDisplay();
+            if (!AppState.isLocked) {
+                AppState.school.academicPeriod = period;
+                saveToFirebase();
+            }
+        });
+
+        function handleLockToggle() {
+            const enteredCode = document.getElementById('secretCodeInput').value;
+            if (AppState.isLocked) {
+                const confirmation = prompt("Entrez le code secret pour déverrouiller :");
+                if (confirmation === (AppState.secretCode || '1234')) {
+                    AppState.isLocked = false;
+                    applyLockUI(false);
+                    showSuccessAnimation("🔓", "Déverrouillé", "Modifications autorisées.");
+                    saveToFirebase();
+                } else if (confirmation !== null) alert("Code incorrect.");
+            } else {
+                lockConfiguration();
+            }
+        }
+        document.getElementById('btnLock').addEventListener('click', handleLockToggle);
+
+        function applyLockUI(locked) {
+            document.getElementById('schoolName').disabled = locked;
+            document.getElementById('schoolYear').disabled = locked;
+            document.getElementById('directorName').disabled = locked;
+            document.getElementById('censorName').disabled = locked;
+            document.getElementById('academicPeriod').disabled = locked;
+            document.getElementById('cycle1').disabled = locked;
+            document.getElementById('cycle2').disabled = locked;
+            document.getElementById('secretCodeInput').disabled = locked;
+            const btn = document.getElementById('btnLock');
+            btn.className = "btn btn-danger font-weight-bold";
+            btn.innerText = locked ? "Déverrouiller la configuration" : "Verrouiller la configuration";
+        }
+
+        function lockConfiguration() {
+            if (AppState.isLocked) return;
+            const name = document.getElementById('schoolName').value;
+            const year = document.getElementById('schoolYear').value;
+            const code = document.getElementById('secretCodeInput').value;
+            const cycles = [];
+            if (document.getElementById('cycle1').checked) cycles.push(document.getElementById('cycle1').value);
+            if (document.getElementById('cycle2').checked) cycles.push(document.getElementById('cycle2').value);
+            if (!name || !year || cycles.length === 0 || !code) { alert("Champs obligatoires manquants."); return; }
+            
+            AppState.school.name = name;
+            AppState.school.year = year;
+            AppState.school.director = document.getElementById('directorName').value;
+            AppState.school.censor = document.getElementById('censorName').value;
+            AppState.school.academicPeriod = document.getElementById('academicPeriod').value;
+            AppState.school.cycles = cycles;
+            AppState.secretCode = code;
+            AppState.isLocked = true;
+            applyLockUI(true);
+            showSuccessAnimation("🔒", "Verrouillé", "Configuration enregistrée.");
+            saveToFirebase();
+        }
+
+        function addPromotion() {
+            const count = parseInt(document.getElementById('classCount').value);
+            const promoName = document.getElementById('promoName').value;
+            const sections = document.getElementById('promoSections').value || '';
+            if (!promoName || isNaN(count) || count < 1) { alert("Champs invalides."); return; }
+            const classesArray = [];
+            const baseSuffix = sections.trim() !== '' ? sections.trim() : 'Général';
+            for (let i = 1; i <= count; i++) {
+                classesArray.push(sections.trim() !== '' ? `${baseSuffix}${i}` : `M${i}`);
+            }
+            AppState.promotions.push({ id: Date.now(), cycle: document.getElementById('promoCycle').value, name: promoName, sections: baseSuffix, classes: classesArray });
+            showSuccessAnimation("✓", "Succès", "Promotion ajoutée.");
+            document.getElementById('promoName').value = '';
+            document.getElementById('promoSections').value = '';
+            document.getElementById('classCount').value = '';
+            saveToFirebase();
+        }
+        document.getElementById('btnAddPromotion').addEventListener('click', addPromotion);
+
+        window.deletePromotion = function(id) {
+            const confirmation = prompt("Code secret pour supprimer :");
+            if (confirmation === (AppState.secretCode || '1234')) {
+                AppState.promotions = AppState.promotions.filter(p => p.id !== id);
+                saveToFirebase();
+            } else if (confirmation !== null) alert("Code incorrect.");
         }
 
         function showSuccessAnimation(icon, title, message) {
@@ -806,516 +504,82 @@
             document.getElementById('overlayIcon').innerText = icon;
             document.getElementById('overlayTitle').innerText = title;
             document.getElementById('overlayMessage').innerText = message;
-            
             overlay.classList.add('active');
-            setTimeout(() => {
-                overlay.classList.remove('active');
-            }, 1800);
+            setTimeout(() => { overlay.classList.remove('active'); }, 1800);
         }
 
-        function toggleHiddenData() {
-            const container = document.getElementById('hiddenDataContainer');
-            if (container.style.display === 'none' || container.style.display === '') {
-                container.style.display = 'block';
-            } else {
-                container.style.display = 'none';
-            }
+        function toggleHiddenData() { 
+            const c = document.getElementById('hiddenDataContainer'); 
+            c.style.display = (c.style.display === 'block') ? 'none' : 'block'; 
         }
+        document.getElementById('btnToggleHiddenData').addEventListener('click', toggleHiddenData);
 
         function updateHiddenView() {
             const renderDiv = document.getElementById('renderedData');
-            if(!renderDiv) return;
-            
-            let html = `<h6>Établissement: ${AppState.school.name || 'Non défini'} | Année: ${AppState.school.year || 'Non définie'}</h6>`;
-            html += `<p><strong>Directeur :</strong> ${AppState.school.director || 'Non spécifié'} | <strong>Censeur :</strong> ${AppState.school.censor || 'Non spécifié'}</p>`;
-            html += `<p><strong>Régime :</strong> ${AppState.school.academicPeriod || 'Non spécifié'} | <strong>Cycles:</strong> ${AppState.school.cycles ? AppState.school.cycles.join(', ') : 'Aucun'}</p>`;
-            
+            let html = `<h6>Établissement: ${AppState.school.name || 'Non défini'}</h6>`;
             if (AppState.promotions && AppState.promotions.length > 0) {
-                html += `<h6>Promotions configurées :</h6><ul class="list-group">`;
+                html += `<ul class="list-group">`;
                 AppState.promotions.forEach(p => {
-                    html += `
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>${p.name}</strong> (${p.cycle}) - Mentions/Séries: <span class="text-muted">${p.sections}</span> - ${p.classes.length} classe(s) : <span class="text-success">${p.classes.join(', ')}</span>
-                            </div>
-                            <button class="btn btn-sm btn-danger ms-2" onclick="deletePromotion(${p.id})">Supprimer</button>
-                        </li>`;
+                    html += `<li class="list-group-item d-flex justify-content-between align-items-center"><strong>${p.name}</strong> <button class="btn btn-sm btn-danger" onclick="deletePromotion(${p.id})">Supprimer</button></li>`;
                 });
                 html += `</ul>`;
-            } else {
-                html += `<p class="text-muted">Aucune donnée générée pour le moment.</p>`;
-            }
-
+            } else html += `<p>Aucune promotion.</p>`;
             renderDiv.innerHTML = html;
         }
 
-        function initializeInterfaceMetaData() {
-            if (AppState.school.name) {
-                document.getElementById('displaySchoolName').innerText = AppState.school.name;
-            }
-            if (AppState.school.year) {
-                document.getElementById('displaySchoolYear').innerText = "Année Scolaire : " + AppState.school.year;
-            }
+        function exportDataToJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(AppState));
+            const a = document.createElement('a'); a.href = dataStr; a.download = "backup_academix.json"; a.click();
         }
+        document.getElementById('btnExportJSON').addEventListener('click', exportDataToJSON);
 
-        function populateCycles() {
-            const selectCycle = document.getElementById('selectCycle');
-            if(!selectCycle) return;
-            const previousCycle = selectCycle.value;
-            
-            selectCycle.innerHTML = '<option value="">-- Sélectionner un cycle --</option>';
-            
-            const cyclesSet = new Set();
-            if (AppState.promotions) {
-                AppState.promotions.forEach(p => {
-                    if (p.cycle) cyclesSet.add(p.cycle);
-                });
-            }
+        function triggerImportClick() { document.getElementById('importJsonFile').click(); }
+        document.getElementById('btnTriggerImport').addEventListener('click', triggerImportClick);
 
-            cyclesSet.forEach(cycle => {
-                const opt = document.createElement('option');
-                opt.value = cycle;
-                opt.innerText = cycle;
-                selectCycle.appendChild(opt);
-            });
-
-            if(previousCycle && cyclesSet.has(previousCycle)) {
-                selectCycle.value = previousCycle;
-            } else {
-                document.getElementById('selectClasse').disabled = true;
-                document.getElementById('selectClasse').innerHTML = '<option value="">-- Sélectionner une classe --</option>';
-                document.getElementById('statsForm').style.display = 'none';
-                document.getElementById('summaryTableContainer').classList.add('d-none');
-            }
-        }
-
-        function handleCycleChange() {
-            const cycleSelected = document.getElementById('selectCycle').value;
-            const selectClasse = document.getElementById('selectClasse');
-            
-            selectClasse.innerHTML = '<option value="">-- Sélectionner une classe --</option>';
-            document.getElementById('statsForm').style.display = 'none';
-            document.getElementById('summaryTableContainer').classList.add('d-none');
-            resetSummaryTable();
-
-            if (!cycleSelected) {
-                selectClasse.disabled = true;
-                return;
-            }
-
-            let classesTrouvees = [];
-            AppState.promotions.forEach(p => {
-                if (p.cycle === cycleSelected && p.classes) {
-                    p.classes.forEach(c => {
-                        classesTrouvees.push(`${p.name} - ${c}`);
-                    });
+        function importDataFromJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    AppState = data;
+                    saveToFirebase();
+                    showSuccessAnimation("📥", "Importé", "Données cloud mises à jour.");
+                } catch (err) {
+                    alert("Fichier JSON invalide.");
                 }
-            });
-
-            if (classesTrouvees.length > 0) {
-                classesTrouvees.forEach(cls => {
-                    const opt = document.createElement('option');
-                    opt.value = cls;
-                    opt.innerText = cls;
-                    selectClasse.appendChild(opt);
-                });
-                selectClasse.disabled = false;
-                updateClassesStatusDisplay();
-            } else {
-                selectClasse.disabled = true;
-            }
-
-            checkFormCompletion();
-        }
-
-        function updateClassesStatusDisplay() {
-            const selectClasse = document.getElementById('selectClasse');
-            if(!selectClasse) return;
-            const options = selectClasse.querySelectorAll('option');
-            const schoolYear = AppState.school.year || '2025-2026';
-            const semestre = document.getElementById('selectSemestre').value;
-            const cycle = document.getElementById('selectCycle').value;
-            const indicator = document.getElementById('statusIndicator');
-            const currentValue = selectClasse.value;
-
-            const normalizedCycle = normalizeCycleValue(cycle);
-
-            options.forEach(opt => {
-                if (!opt.value) return;
-                const testKey = `${schoolYear}_${semestre}_${normalizedCycle}_${opt.value}`;
-                let cleanText = opt.innerText.replace(" - OK ✅", "").replace(" - Incomplet", "");
-                
-                if (AppState.stats && AppState.stats[testKey]) {
-                    opt.innerText = cleanText + " - OK ✅";
-                } else {
-                    opt.innerText = cleanText + " - Incomplet";
-                }
-            });
-
-            if (!currentValue) {
-                indicator.innerText = "Incomplet";
-                indicator.className = "badge bg-secondary";
-                return;
-            }
-
-            const currentKey = `${schoolYear}_${semestre}_${normalizedCycle}_${currentValue}`;
-            if (AppState.stats && AppState.stats[currentKey]) {
-                indicator.innerText = "OK ✅";
-                indicator.className = "badge bg-success px-3 py-1 fs-6";
-            } else {
-                indicator.innerText = "Incomplet";
-                indicator.className = "badge bg-danger px-3 py-1 fs-6";
-            }
-        }
-
-        function compareAverages() {
-            const fortG = parseFloat(document.getElementById('stat_fort_g').value);
-            const fortF = parseFloat(document.getElementById('stat_fort_f').value);
-            const faibleG = parseFloat(document.getElementById('stat_faible_g').value);
-            const faibleF = parseFloat(document.getElementById('stat_faible_f').value);
-
-            const bilanFort = document.getElementById('bilan_fort_val');
-            const bilanFaible = document.getElementById('bilan_faible_val');
-
-            if (!isNaN(fortG) && !isNaN(fortF)) {
-                bilanFort.value = Math.max(fortG, fortF).toFixed(2);
-            } else if (!isNaN(fortG)) {
-                bilanFort.value = fortG.toFixed(2);
-            } else if (!isNaN(fortF)) {
-                bilanFort.value = fortF.toFixed(2);
-            } else {
-                bilanFort.value = '';
-            }
-
-            if (!isNaN(faibleG) && !isNaN(faibleF)) {
-                bilanFaible.value = Math.min(faibleG, faibleF).toFixed(2);
-            } else if (!isNaN(faibleG)) {
-                bilanFaible.value = faibleG.toFixed(2);
-            } else if (!isNaN(faibleF)) {
-                bilanFaible.value = faibleF.toFixed(2);
-            } else {
-                bilanFaible.value = '';
-            }
-        }
-
-        function sumTranche(prefix) {
-            const inputG = document.getElementById(`stat_${prefix}_g`);
-            const inputF = document.getElementById(`stat_${prefix}_f`);
-            
-            let g = parseInt(inputG.value) || 0;
-            let f = parseInt(inputF.value) || 0;
-            
-            if (g > 100) { inputG.value = 100; g = 100; }
-            if (f > 100) { inputF.value = 100; f = 100; }
-            
-            document.getElementById(`stat_${prefix}_t`).value = g + f;
-        }
-
-        function setupNumericConstraints() {
-            const avgInputs = ['stat_fort_g', 'stat_fort_f', 'stat_faible_g', 'stat_faible_f'];
-            
-            avgInputs.forEach(id => {
-                const input = document.getElementById(id);
-                if (!input) return;
-                
-                input.addEventListener('input', () => {
-                    let val = parseFloat(input.value);
-                    if (val > 20) {
-                        input.value = 20;
-                    }
-                });
-                
-                input.addEventListener('blur', () => {
-                    let val = parseFloat(input.value);
-                    if (!isNaN(val)) {
-                        if (val > 20) val = 20;
-                        if (val < 0) val = 0;
-                        input.value = val.toFixed(2);
-                        compareAverages(); 
-                    }
-                });
-            });
-        }
-
-        function setupEnterNavigation() {
-            const form = document.getElementById('statsForm');
-            if (!form) return;
-
-            form.addEventListener('keydown', (event) => {
-                if (event.key === 'Enter') {
-                    event.preventDefault(); 
-                    
-                    const target = event.target;
-                    if (target && target.tagName === 'INPUT') {
-                        const inputs = Array.from(form.querySelectorAll('input:not([disabled]):not([readonly])'));
-                        const currentIndex = inputs.indexOf(target);
-                        
-                        if (currentIndex !== -1 && currentIndex < inputs.length - 1) {
-                            inputs[currentIndex + 1].focus();
-                        }
-                    }
-                }
-            });
-        }
-
-        function checkFormCompletion() {
-            const form = document.getElementById('statsForm');
-            const selectClasse = document.getElementById('selectClasse').value;
-
-            if (!selectClasse) {
-                updateClassesStatusDisplay();
-                return false;
-            }
-
-            const inputs = form.querySelectorAll('input[required]');
-            let allFilled = true;
-
-            inputs.forEach(input => {
-                if (input.value.trim() === "") {
-                    allFilled = false;
-                }
-            });
-
-            const indicator = document.getElementById('statusIndicator');
-            if (allFilled) {
-                indicator.innerText = "OK ✅";
-                indicator.className = "badge bg-success px-3 py-1 fs-6";
-                return true;
-            } else {
-                indicator.innerText = "Incomplet";
-                indicator.className = "badge bg-danger px-3 py-1 fs-6";
-                return false;
-            }
-        }
-
-        function buildStorageKey() {
-            const schoolYear = AppState.school.year || '2025-2026';
-            const semestre = document.getElementById('selectSemestre').value;
-            const cycle = document.getElementById('selectCycle').value;
-            const classe = document.getElementById('selectClasse').value;
-            const normalizedCycle = normalizeCycleValue(cycle);
-            return `${schoolYear}_${semestre}_${normalizedCycle}_${classe}`;
-        }
-
-        function loadStatsForCurrentSelection() {
-            const selectClasse = document.getElementById('selectClasse').value;
-            const form = document.getElementById('statsForm');
-            const summaryTableContainer = document.getElementById('summaryTableContainer');
-            const summaryTableTitle = document.getElementById('summaryTableTitle');
-
-            document.getElementById('instructionMessage').classList.add('d-none');
-
-            if (!selectClasse) {
-                form.style.display = 'none';
-                summaryTableContainer.classList.add('d-none');
-                resetSummaryTable();
-                updateClassesStatusDisplay();
-                return;
-            }
-
-            form.style.display = 'block';
-            summaryTableContainer.classList.remove('d-none');
-            summaryTableTitle.innerText = `Statistiques par classe : ${selectClasse}`;
-            
-            const key = buildStorageKey();
-            const prefixes = ['malades', 'abandons', 'inf650', '650_750', '750_900', '900_1000', '1000_1100', '1100_1200', '1200_1400', '1400_1600', 'sup1600'];
-
-            if (AppState.stats && AppState.stats[key]) {
-                const s = AppState.stats[key];
-                document.getElementById('stat_fort_g').value = s.fort_g ? parseFloat(s.fort_g).toFixed(2) : '';
-                document.getElementById('stat_fort_f').value = s.fort_f ? parseFloat(s.fort_f).toFixed(2) : '';
-                document.getElementById('stat_faible_g').value = s.faible_g ? parseFloat(s.faible_g).toFixed(2) : '';
-                document.getElementById('stat_faible_f').value = s.faible_f ? parseFloat(s.faible_f).toFixed(2) : '';
-                
-                document.getElementById('nom_fort_eleve').value = s.nom_fort || '';
-                document.getElementById('nom_faible_eleve').value = s.nom_faible || '';
-
-                prefixes.forEach(prefix => {
-                    document.getElementById(`stat_${prefix}_g`).value = s[`${prefix}_g`] || '';
-                    document.getElementById(`stat_${prefix}_f`).value = s[`${prefix}_f`] || '';
-                    sumTranche(prefix);
-                });
-            } else {
-                form.reset();
-                document.getElementById('bilan_fort_val').value = '';
-                document.getElementById('bilan_faible_val').value = '';
-
-                prefixes.forEach(prefix => {
-                    document.getElementById(`stat_${prefix}_t`).value = '';
-                });
-            }
-
-            compareAverages(); 
-            checkFormCompletion();
-            updateSummaryTable();
-            updateClassesStatusDisplay();
-        }
-
-        function updateSummaryTable() {
-            const getVal = (id) => parseInt(document.getElementById(id).value) || 0;
-
-            const mal_g = getVal('stat_malades_g');
-            const mal_f = getVal('stat_malades_f');
-            const aba_g = getVal('stat_abandons_g');
-            const aba_f = getVal('stat_abandons_f');
-
-            const nonclass_tot_g = mal_g + aba_g;
-            const nonclass_tot_f = mal_f + aba_f;
-            const nonclass_tot_t = nonclass_tot_g + nonclass_tot_f;
-
-            const tranches = ['inf650', '650_750', '750_900', '900_1000', '1000_1100', '1100_1200', '1200_1400', '1400_1600', 'sup1600'];
-            let class_g = 0;
-            let class_f = 0;
-
-            tranches.forEach(t => {
-                class_g += getVal(`stat_${t}_g`);
-                class_f += getVal(`stat_${t}_f`);
-            });
-
-            const tranchesMoy = ['1000_1100', '1100_1200', '1200_1400', '1400_1600', 'sup1600'];
-            let moy_g = 0;
-            let moy_f = 0;
-
-            tranchesMoy.forEach(t => {
-                moy_g += getVal(`stat_${t}_g`);
-                moy_f += getVal(`stat_${t}_f`);
-            });
-
-            const eff_g = class_g + mal_g + aba_g;
-            const eff_f = class_f + mal_f + aba_f;
-
-            document.getElementById('summary_eff_g').innerText = eff_g;
-            document.getElementById('summary_class_g').innerText = class_g;
-            document.getElementById('summary_mal_g').innerText = mal_g;
-            document.getElementById('summary_aba_g').innerText = aba_g;
-            document.getElementById('summary_nonclass_tot_g').innerText = nonclass_tot_g;
-            document.getElementById('summary_moy_g').innerText = moy_g;
-
-            document.getElementById('summary_eff_f').innerText = eff_f;
-            document.getElementById('summary_class_f').innerText = class_f;
-            document.getElementById('summary_mal_f').innerText = mal_f;
-            document.getElementById('summary_aba_f').innerText = aba_f;
-            document.getElementById('summary_nonclass_tot_f').innerText = nonclass_tot_f;
-            document.getElementById('summary_moy_f').innerText = moy_f;
-
-            document.getElementById('summary_eff_t').innerText = eff_g + eff_f;
-            document.getElementById('summary_class_t').innerText = class_g + class_f;
-            document.getElementById('summary_mal_t').innerText = mal_g + mal_f;
-            document.getElementById('summary_aba_t').innerText = aba_g + aba_f;
-            document.getElementById('summary_nonclass_tot_t').innerText = nonclass_tot_t;
-            document.getElementById('summary_moy_t').innerText = moy_g + moy_f;
-        }
-
-        function resetSummaryTable() {
-            const ids = ['eff_g', 'class_g', 'mal_g', 'aba_g', 'nonclass_tot_g', 'moy_g', 'eff_f', 'class_f', 'mal_f', 'aba_f', 'nonclass_tot_f', 'moy_f', 'eff_t', 'class_t', 'mal_t', 'aba_t', 'nonclass_tot_t', 'moy_t'];
-            ids.forEach(id => {
-                const el = document.getElementById(`summary_${id}`);
-                if (el) el.innerText = '0';
-            });
-        }
-
-        function saveStatsData() {
-            const selectClasseEl = document.getElementById('selectClasse');
-            const selectClasse = selectClasseEl.value;
-            if (!selectClasse) {
-                alert("Veuillez sélectionner une classe valide avant d'enregistrer.");
-                return;
-            }
-
-            const form = document.getElementById('statsForm');
-            if (!form.checkValidity()) {
-                alert("Veuillez remplir correctement tous les critères statistiques requis.");
-                return;
-            }
-
-            const key = buildStorageKey();
-            const prefixes = ['malades', 'abandons', 'inf650', '650_750', '750_900', '900_1000', '1000_1100', '1100_1200', '1200_1400', '1400_1600', 'sup1600'];
-            
-            let dataToSave = {
-                fort_g: document.getElementById('stat_fort_g').value,
-                fort_f: document.getElementById('stat_fort_f').value,
-                faible_g: document.getElementById('stat_faible_g').value,
-                faible_f: document.getElementById('stat_faible_f').value,
-                nom_fort: document.getElementById('nom_fort_eleve').value,     
-                nom_faible: document.getElementById('nom_faible_eleve').value  
             };
+            reader.readAsText(file);
+        }
+        document.getElementById('importJsonFile').addEventListener('change', importDataFromJSON);
 
-            prefixes.forEach(prefix => {
-                dataToSave[`${prefix}_g`] = document.getElementById(`stat_${prefix}_g`).value;
-                dataToSave[`${prefix}_f`] = document.getElementById(`stat_${prefix}_f`).value;
-            });
-
-            // Mutation locale immédiate
-            AppState.stats[key] = dataToSave;
-
-            // Synchronisation instantanée vers Firebase Realtime Database sur la branche unifiée
-            if (window.FirebaseDB) {
-                window.FirebaseRefs.set(window.FirebaseRefs.ref(window.FirebaseDB, "AppState/stats/" + key), dataToSave)
-                .then(() => {
-                    console.log("Données transmises avec succès au cloud.");
-                })
-                .catch((error) => {
-                    console.error("Échec de synchronisation cloud, conservé en cache locale :", error);
+        function clearConfigData() {
+            const confirmation = prompt("Entrez le code secret de sécurité pour purger la configuration :");
+            if (confirmation === (AppState.secretCode || '1234')) {
+                AppState = { isLocked: false, secretCode: '1234', school: { name: '', year: '', director: '', censor: '', academicPeriod: 'Trimestres', cycles: [] }, promotions: [], stats: AppState.stats || {} };
+                set(dbRef, AppState).then(() => {
+                    location.reload();
                 });
-            }
-            
-            form.style.display = 'none';
-            document.getElementById('summaryTableContainer').classList.add('d-none');
-
-            selectClasseEl.value = "";
-            resetSummaryTable();
-            updateClassesStatusDisplay();
-            
-            const instructionEl = document.getElementById('instructionMessage');
-            instructionEl.classList.remove('d-none');
-            
-            showSuccessAnimation('✓', 'Enregistrement Effectué', `Données sauvegardées avec synchronisation cloud.`);
-        }
-
-        function toggleAudioSpeech() {
-            isAudioSpeechEnabled = !isAudioSpeechEnabled;
-            const btn = document.getElementById('audioToggleBtn');
-            if (isAudioSpeechEnabled) {
-                btn.innerText = "🔊 Lecture Vocale : ON";
-                btn.className = "btn btn-success shadow-lg fw-bold";
-                speakText("Lecture vocale activée");
-            } else {
-                btn.innerText = "🔊 Lecture Vocale : OFF";
-                btn.className = "btn btn-secondary shadow-lg fw-bold";
-                if (window.speechSynthesis) {
-                    window.speechSynthesis.cancel();
-                }
+            } else if (confirmation !== null) {
+                alert("Code de sécurité incorrect. Action annulée.");
             }
         }
+        document.getElementById('btnClearConfig').addEventListener('click', clearConfigData);
 
-        function speakText(text) {
-            if (!isAudioSpeechEnabled || !window.speechSynthesis) return;
-            window.speechSynthesis.cancel();
-            
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'fr-FR';
-            utterance.rate = 1.1; 
-            window.speechSynthesis.speak(utterance);
+        function clearStatisticsData() {
+            const confirmation = prompt("Entrez le code secret de sécurité pour purger les statistiques :");
+            if (confirmation === (AppState.secretCode || '1234')) {
+                AppState.stats = {};
+                saveToFirebase();
+                showSuccessAnimation("❌", "Purgé", "Statistiques supprimées.");
+            } else if (confirmation !== null) {
+                alert("Code de sécurité incorrect. Action annulée.");
+            }
         }
-
-        function setupAudioSpeechListeners() {
-            const form = document.getElementById('statsForm');
-            if (!form) return;
-
-            form.addEventListener('input', (event) => {
-                if (!isAudioSpeechEnabled) return;
-                
-                const target = event.target;
-                if (target && target.tagName === 'INPUT') {
-                    const value = target.value;
-                    if (value.length === 0) return;
-
-                    const lastChar = value.charAt(value.length - 1);
-                    speakText(lastChar);
-                }
-            });
-        }
+        document.getElementById('btnClearStats').addEventListener('click', clearStatisticsData);
     </script>
+
     <script>
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -1325,13 +589,13 @@
             if(btn) btn.style.display = 'block';
         });
 
-        async function installPWA() {
+        document.getElementById('installBtn').addEventListener('click', async () => {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
                 if (outcome === 'accepted') deferredPrompt = null;
             }
-        }
+        });
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
