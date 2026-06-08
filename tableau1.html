@@ -112,6 +112,7 @@
             border-radius: 8px !important;
             overflow: hidden !important;
             border: 1px solid #cbd5e1 !important;
+            table-layout: auto !important;
         }
         .custom-printed-table th {
             background-color: #ebedef !important;
@@ -121,13 +122,24 @@
             font-size: 0.72rem !important;
             border: 1px solid #cbd5e1 !important;
             padding: 5px 3px !important;
-            white-space: nowrap;
+            white-space: nowrap !important;
         }
         .custom-printed-table td {
             border: 1px solid #cbd5e1 !important;
             padding: 5px 3px !important;
-            white-space: nowrap;
+            white-space: nowrap !important;
         }
+        
+        /* Réduction ciblée de la première colonne */
+        .custom-printed-table th:first-child,
+        .custom-printed-table td:first-child {
+            width: 90px !important;
+            max-width: 90px !important;
+            font-size: 0.75rem !important;
+            text-align: left !important;
+            padding-left: 5px !important;
+        }
+
         .custom-printed-table tbody tr:nth-child(even) {
             background-color: #f4f6f7 !important;
         }
@@ -172,20 +184,22 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
 
-        /* Règle dynamique d'orientation qui sera modifiée par JS */
-        @page {
-            size: landscape;
-            margin: 5mm 5mm 10mm 5mm;
-        }
+        /* Configuration dynamique de l'orientation via une classe body */
+        body.print-landscape { --page-orientation: landscape; }
+        body.print-portrait { --page-orientation: portrait; }
 
         @media print {
+            @page {
+                size: var(--page-orientation, landscape);
+                margin: 5mm 5mm 10mm 5mm;
+            }
             body {
                 background-color: #ffffff;
                 color: #000000;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-            .navbar, .btn, .no-print, footer, .print-header, #installBtn, .modal {
+            .navbar, .btn, .no-print, footer, .print-header, #installBtn {
                 display: none !important;
             }
             .card {
@@ -198,12 +212,10 @@
                 padding: 0 !important;
             }
             
-            /* Ajustement global pour maximiser la compacité */
             #summaryTableContainer {
                 zoom: 72%;
             }
 
-            /* En-tête Pro raffiné sur deux lignes strictement */
             .print-header-clean {
                 display: flex !important;
                 justify-content: space-between;
@@ -220,19 +232,19 @@
                 text-align: right;
             }
             .print-header-clean h1 {
-                font-size: 1.3rem !important;
+                font-size: 1.2rem !important;
                 margin: 0 !important;
                 font-weight: bold !important;
                 text-transform: uppercase;
             }
             .print-header-clean h2 {
-                font-size: 1.1rem !important;
+                font-size: 1.05rem !important;
                 margin: 0 !important;
                 font-weight: bold !important;
                 color: #dc3545 !important;
             }
             .print-header-clean p {
-                font-size: 1rem !important;
+                font-size: 0.95rem !important;
                 margin: 0 !important;
                 font-weight: 600 !important;
             }
@@ -244,13 +256,13 @@
                 border-radius: 0 !important;
             }
             
-            /* Répétition automatique de l'en-tête sur chaque page */
             .custom-printed-table {
                 width: 100% !important;
                 border-collapse: collapse !important;
                 border-spacing: 0 !important;
                 display: table !important;
-                font-size: 0.52rem !important; /* Micro-typographie forcée pour l'alignement */
+                font-size: 0.52rem !important; 
+                border: 1px solid #000000 !important;
             }
             .custom-printed-table thead {
                 display: table-header-group !important;
@@ -259,21 +271,24 @@
             .custom-printed-table th {
                 font-size: 0.52rem !important;
                 padding: 2px 1px !important;
-                white-space: nowrap !important;
+                border: 1px solid #000000 !important;
             }
             .custom-printed-table td {
                 padding: 2px 1px !important;
-                white-space: nowrap !important;
+                border: 1px solid #000000 !important;
             }
+            
+            .custom-printed-table th:first-child,
+            .custom-printed-table td:first-child {
+                width: 75px !important;
+                max-width: 75px !important;
+                font-size: 0.52rem !important;
+            }
+
             .custom-printed-table tr {
                 page-break-inside: avoid !important;
             }
 
-            .custom-printed-table th, .custom-printed-table td {
-                border: 1px solid #000000 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
             .custom-printed-table tbody tr:nth-child(even) {
                 background-color: #f2f2f2 !important;
             }
@@ -286,7 +301,6 @@
                 margin-top: 30px !important;
             }
 
-            /* Pied de page d'impression positionné en bas de page */
             .print-footer-clean {
                 display: block !important;
                 position: fixed;
@@ -294,7 +308,7 @@
                 left: 0;
                 right: 0;
                 text-align: center;
-                font-size: 0.75rem !important;
+                font-size: 0.7rem !important;
                 border-top: 1px solid #cbd5e1;
                 padding-top: 4px;
                 font-weight: 500;
@@ -303,7 +317,7 @@
         }
     </style>
 </head>
-<body>
+<body class="print-landscape">
 
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
         <div class="container-fluid">
@@ -380,7 +394,7 @@
                         </div>
                         
                         <div class="table-responsive-custom mt-2">
-                            <table class="table custom-printed-table table-sm text-center align-middle mb-0 bg-white" style="font-size: 0.8rem;" id="mainStatisticsTable">
+                            <table class="table custom-printed-table table-sm text-center align-middle mb-0 bg-white" id="mainStatisticsTable">
                                 <thead id="tableHeaderContainer">
                                 </thead>
                                 <tbody id="tableBodyContainer">
@@ -414,34 +428,28 @@
 
     </div>
 
-    <!-- Boîte de dialogue de configuration de l'impression -->
-    <div class="modal fade" id="printConfigModal" tabindex="-1" aria-labelledby="printConfigModalLabel" aria-hidden="true">
+    <!-- Boîte de dialogue d'orientation de l'impression (Modal Bootstrap) -->
+    <div class="modal fade no-print" id="printOrientationModal" tabindex="-1" aria-labelledby="printOrientationModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content" style="border-radius: 12px; overflow: hidden;">
                 <div class="modal-header text-white" style="background-color: var(--wa-dark-green);">
-                    <h5 class="modal-title fw-bold" id="printConfigModalLabel">Configuration de l'impression</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-submit="modal" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title fw-bold" id="printOrientationModalLabel">Options d'impression</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body bg-light">
-                    <p class="fw-semibold text-secondary">Veuillez sélectionner l'orientation de page souhaitée pour le document PDF :</p>
-                    <div class="card p-3 mb-2 border border-secondary-subtle">
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="printOrientation" id="orientLandscape" value="landscape" checked>
-                            <label class="form-check-label fw-bold text-dark" for="orientLandscape">
-                                🗺️ Paysage (Recommandé - Évite les coupures horizontales)
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="printOrientation" id="orientPortrait" value="portrait">
-                            <label class="form-check-label fw-bold text-dark" for="orientPortrait">
-                                📄 Portrait (Format vertical compact)
-                            </label>
-                        </div>
+                <div class="modal-body bg-light text-center p-4">
+                    <p class="fw-semibold text-secondary mb-3">Choisissez l'orientation de page optimale pour l'export PDF / Impression :</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <button type="button" class="btn btn-outline-secondary p-3 d-flex flex-column align-items-center justify-content-center style-btn" onclick="setOrientationAndPrint('landscape')" style="width: 140px; border-width: 2px; border-radius: 10px;">
+                            <span class="fs-2 mb-1">🌅</span>
+                            <strong>Paysage</strong>
+                            <small class="text-muted">(Conseillé : 53 col.)</small>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary p-3 d-flex flex-column align-items-center justify-content-center style-btn" onclick="setOrientationAndPrint('portrait')" style="width: 140px; border-width: 2px; border-radius: 10px;">
+                            <span class="fs-2 mb-1">📐</span>
+                            <strong>Portrait</strong>
+                            <small class="text-muted">(Format condensé)</small>
+                        </button>
                     </div>
-                </div>
-                <div class="modal-footer bg-light border-top-0">
-                    <button type="button" class="btn btn-secondary fw-semibold" data-bs-dismiss="modal">Annuler</button>
-                    <button type="button" class="btn btn-wa px-4" onclick="executeConfiguredPrint()">Lancer l'impression</button>
                 </div>
             </div>
         </div>
@@ -477,20 +485,11 @@
             stats: {}
         };
 
-        // Variable globale pour l'instance du modal Bootstrap
-        let printModalInstance = null;
-
         window.addEventListener('DOMContentLoaded', () => {
             loadFromLocalStorage();
             initializeInterfaceMetaData();
             populatePeriods();
             refreshTableau();
-            
-            // Initialisation du modal
-            const modalElement = document.getElementById('printConfigModal');
-            if (modalElement) {
-                printModalInstance = new bootstrap.Modal(modalElement);
-            }
         });
 
         function saveToLocalStorage() {
@@ -567,37 +566,32 @@
             loadStatsForEstablishment();
         }
 
+        // Fonctions dédiées au choix dynamique de l'orientation
         function openPrintModal() {
-            if (printModalInstance) {
-                printModalInstance.show();
-            } else {
-                window.print();
-            }
+            const myModal = new bootstrap.Modal(document.getElementById('printOrientationModal'));
+            myModal.show();
         }
 
-        function executeConfiguredPrint() {
-            const isLandscape = document.getElementById('orientLandscape').checked;
-            const orientationValue = isLandscape ? 'landscape' : 'portrait';
-            
-            // Recherche ou création d'un conteneur de style dédié pour la règle @page dynamique
-            let stylePage = document.getElementById('dynamicPageOrientationStyle');
-            if (!stylePage) {
-                stylePage = document.createElement('style');
-                stylePage.id = 'dynamicPageOrientationStyle';
-                document.head.appendChild(stylePage);
+        function setOrientationAndPrint(orientation) {
+            const body = document.body;
+            if (orientation === 'portrait') {
+                body.classList.remove('print-landscape');
+                body.classList.add('print-portrait');
+            } else {
+                body.classList.remove('print-portrait');
+                body.classList.add('print-landscape');
             }
             
-            // Injection de la directive d'impression choisie
-            stylePage.innerHTML = `@page { size: ${orientationValue}; margin: 5mm 5mm 10mm 5mm; }`;
-            
-            if (printModalInstance) {
-                printModalInstance.hide();
+            // Fermeture de la modal avant déclenchement de la boîte système d'impression
+            const modalEl = document.getElementById('printOrientationModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) {
+                modalInstance.hide();
             }
             
-            // Petite pause asynchrone pour laisser le temps au modal de s'effacer proprement de l'écran arrière
             setTimeout(() => {
                 window.print();
-            }, 300);
+            }, 350);
         }
 
         function loadStatsForEstablishment() {
@@ -607,13 +601,14 @@
             const headerContainer = document.getElementById('tableHeaderContainer');
             const bodyContainer = document.getElementById('tableBodyContainer');
 
+            // Abréviations intelligentes appliquées aux colonnes du tableau global pour éviter tout retour à la ligne induit
             headerContainer.innerHTML = `
                 <tr>
                     <th rowspan="3" class="align-middle">CLASSES</th>
                     <th colspan="3">EFFECTIF</th>
-                    <th colspan="9">NON CLASSÉS</th>
+                    <th colspan="9">NON CLASSÉS (NC)</th>
                     <th colspan="3">CLASSÉS</th>
-                    <th colspan="3">M &lt; 6,50</th>
+                    <th colspan="3">M &lt; 6,5</th>
                     <th colspan="3">6,5 &le; M &lt; 7,5</th>
                     <th colspan="3">7,5 &le; M &lt; 9</th>
                     <th colspan="3">9 &le; M &lt; 10</th>
@@ -626,7 +621,7 @@
                 </tr>
                 <tr>
                     <th rowspan="2">G</th><th rowspan="2">F</th><th rowspan="2">T</th>
-                    <th colspan="3">MAL.</th><th colspan="3">ABA.</th><th colspan="3" class="fw-bold">T. NC</th>
+                    <th colspan="3">MALADES</th><th colspan="3">ABANDONS</th><th colspan="3" class="fw-bold">TOT NC</th>
                     <th rowspan="2">G</th><th rowspan="2">F</th><th rowspan="2">T</th>
                     <th rowspan="2">G</th><th rowspan="2">F</th><th rowspan="2">T</th>
                     <th rowspan="2">G</th><th rowspan="2">F</th><th rowspan="2">T</th>
@@ -759,7 +754,7 @@
 
                         bodyContainer.innerHTML += `
                             <tr data-promo="${currentPromo}" data-cycle="${currentCycle}">
-                                <td class="fw-bold bg-light align-middle text-dark border-end">${currentClassName}</td>
+                                <td class="fw-bold bg-light align-middle text-dark border-end text-truncate">${currentClassName}</td>
                                 <td class="text-garcon-label">${class_eff_g}</td>
                                 <td class="text-fille-label">${class_eff_f}</td>
                                 <td class="text-total-label fw-bold bg-light">${class_eff_g + class_eff_f}</td>
@@ -809,7 +804,7 @@
 
                     return `
                         <tr class="${rowClass} text-dark">
-                            <td class="align-middle text-uppercase text-start ps-2">${label}</td>
+                            <td class="align-middle text-uppercase text-start ps-2 text-truncate">${label}</td>
                             <td class="text-garcon-label">${eg}</td><td class="text-fille-label">${ef}</td><td class="text-total-label fw-bold">${eg + ef}</td>
                             <td class="text-garcon-label">${totalsObj.mal_g || 0}</td><td class="text-fille-label">${totalsObj.mal_f || 0}</td><td class="text-total-label fw-bold">${(totalsObj.mal_g || 0) + (totalsObj.mal_f || 0)}</td>
                             <td class="text-garcon-label">${totalsObj.aba_g || 0}</td><td class="text-fille-label">${totalsObj.aba_f || 0}</td><td class="text-total-label fw-bold">${(totalsObj.aba_g || 0) + (totalsObj.aba_f || 0)}</td>
@@ -826,10 +821,12 @@
                     const cCycle = row.getAttribute('data-cycle');
 
                     if (idx > 0 && cPromo !== lastPromo && promotionTotals[lastPromo]) {
-                        bodyContainer.innerHTML += createSubTotalRow(`S/T PROMO ${lastPromo}`, promotionTotals[lastPromo], false);
+                        // Utilisation du format abrégé demandé "TÔT + Promotion"
+                        bodyContainer.innerHTML += createSubTotalRow(`TÔT ${lastPromo.toUpperCase()}`, promotionTotals[lastPromo], false);
                     }
                     if (idx > 0 && cCycle !== lastCycle && cycleTotals[lastCycle]) {
-                        bodyContainer.innerHTML += createSubTotalRow(`S/T CYCLE ${lastCycle.toUpperCase()}`, cycleTotals[lastCycle], true);
+                        // Utilisation du format abrégé demandé "TÔT + Cycle"
+                        bodyContainer.innerHTML += createSubTotalRow(`TÔT ${lastCycle.toUpperCase()}`, cycleTotals[lastCycle], true);
                     }
 
                     bodyContainer.appendChild(row);
@@ -838,10 +835,10 @@
                 });
 
                 if (promotionTotals[lastPromo]) {
-                    bodyContainer.innerHTML += createSubTotalRow(`S/T PROMO ${lastPromo}`, promotionTotals[lastPromo], false);
+                    bodyContainer.innerHTML += createSubTotalRow(`TÔT ${lastPromo.toUpperCase()}`, promotionTotals[lastPromo], false);
                 }
                 if (cycleTotals[lastCycle]) {
-                    bodyContainer.innerHTML += createSubTotalRow(`S/T CYCLE ${lastCycle.toUpperCase()}`, cycleTotals[lastCycle], true);
+                    bodyContainer.innerHTML += createSubTotalRow(`TÔT ${lastCycle.toUpperCase()}`, cycleTotals[lastCycle], true);
                 }
 
                 globalTotals.eff_g = globalTotals.class_g + globalTotals.mal_g + globalTotals.aba_g;
@@ -858,7 +855,7 @@
 
                 bodyContainer.innerHTML += `
                     <tr class="row-total-establishment text-dark">
-                        <td class="align-middle text-uppercase">TOTAL ÉTABLISSEMENT</td>
+                        <td class="align-middle text-uppercase text-truncate fw-bold">TÔT ÉTABLISSEMENT</td>
                         <td class="text-garcon-label">${globalTotals.eff_g}</td>
                         <td class="text-fille-label">${globalTotals.eff_f}</td>
                         <td class="text-total-label fw-bold">${globalTotals.eff_g + globalTotals.eff_f}</td>
