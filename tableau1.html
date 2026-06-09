@@ -724,123 +724,165 @@
 
             const getInt = (val) => parseInt(val) || 0;
 
+            // Fonction utilitaire pour attribuer un poids d'indexation afin de trier logiquement les classes
+            function getClassSortWeight(className) {
+                if (!className) return 9999;
+                const clean = className.trim().toUpperCase();
+                
+                let levelWeight = 0;
+                if (clean.startsWith('6')) levelWeight = 1000;
+                else if (clean.startsWith('5')) levelWeight = 2000;
+                else if (clean.startsWith('4')) levelWeight = 3000;
+                else if (clean.startsWith('3')) levelWeight = 4000;
+                else if (clean.startsWith('2')) levelWeight = 5000;
+                else if (clean.startsWith('1')) levelWeight = 6000;
+                else if (clean.startsWith('T')) levelWeight = 7000;
+                else levelWeight = 8000;
+
+                let serieWeight = 0;
+                if (clean.includes('MC') || clean.includes('ML')) serieWeight = 10;
+                else if (clean.includes('A4') || clean.includes('A')) serieWeight = 20;
+                else if (clean.includes('B')) serieWeight = 30;
+                else if (clean.includes('C')) serieWeight = 40;
+                else if (clean.includes('D')) serieWeight = 50;
+
+                // Extraction fine d'un éventuel numéro de groupe (ex: M1, M2 ou groupe 1, 2)
+                const matchNumber = clean.match(/\d+/g);
+                let subNumber = 0;
+                if (matchNumber && matchNumber.length > 1) {
+                    subNumber = parseInt(matchNumber[1]); 
+                } else if (matchNumber && matchNumber.length === 1 && levelWeight === 7000) {
+                    // Pour la Terminale (TLE D1)
+                    subNumber = parseInt(matchNumber[0]);
+                }
+
+                return levelWeight + serieWeight + subNumber;
+            }
+
             if (AppState.stats) {
-                Object.keys(AppState.stats).forEach(key => {
-                    if (key.startsWith(`${schoolYear}_${semestre}_`)) {
-                        const parts = key.split('_');
-                        const currentClassName = parts[3] ? parts[3].trim() : 'Classe';
-                        
-                        let currentPromo = currentClassName.split(' - ')[0] || 'Inconnue';
-                        let currentCycle = '';
-                        
-                        if (AppState.promotions) {
-                            const foundPromo = AppState.promotions.find(p => p.name === currentPromo);
-                            if (foundPromo) {
-                                currentCycle = foundPromo.cycle || '';
-                            }
+                // Extraction et tri ordonné des clés selon la convention scolaire
+                const sortedKeys = Object.keys(AppState.stats)
+                    .filter(key => key.startsWith(`${schoolYear}_${semestre}_`))
+                    .sort((a, b) => {
+                        const classA = a.split('_')[3] || '';
+                        const classB = b.split('_')[3] || '';
+                        return getClassSortWeight(classA) - getClassSortWeight(classB);
+                    });
+
+                sortedKeys.forEach(key => {
+                    const parts = key.split('_');
+                    const currentClassName = parts[3] ? parts[3].trim() : 'Classe';
+                    
+                    let currentPromo = currentClassName.split(' - ')[0] || 'Inconnue';
+                    let currentCycle = '';
+                    
+                    if (AppState.promotions) {
+                        const foundPromo = AppState.promotions.find(p => p.name === currentPromo);
+                        if (foundPromo) {
+                            currentCycle = foundPromo.cycle || '';
                         }
-                        
-                        dataFound = true;
-                        const s = AppState.stats[key];
-
-                        let class_class_g = 0;
-                        let class_class_f = 0;
-                        let class_moy_g = 0;
-                        let class_moy_f = 0;
-
-                        const mg = getInt(s.malades_g);
-                        const mf = getInt(s.malades_f);
-                        const ag = getInt(s.abandons_g);
-                        const af = getInt(s.abandons_f);
-                        
-                        tranches.forEach(t => {
-                            const tg = getInt(s[`${t}_g`]);
-                            const tf = getInt(s[`${t}_f`]);
-                            class_class_g += tg;
-                            class_class_f += tf;
-                            globalTotals[`${t}_g`] += tg;
-                            globalTotals[`${t}_f`] += tf;
-                        });
-
-                        tranchesMoy.forEach(t => {
-                            class_moy_g += getInt(s[`${t}_g`]);
-                            class_moy_f += getInt(s[`${t}_f`]);
-                        });
-
-                        let class_eff_g = class_class_g + mg + ag;
-                        let class_eff_f = class_class_f + mf + af;
-                        let nc_total_g = mg + ag;
-                        let nc_total_f = mf + af;
-
-                        globalTotals.mal_g += mg;
-                        globalTotals.mal_f += mf;
-                        globalTotals.aba_g += ag;
-                        globalTotals.aba_f += af;
-                        globalTotals.class_g += class_class_g;
-                        globalTotals.class_f += class_class_f;
-                        globalTotals.moy_g += class_moy_g;
-                        globalTotals.moy_f += class_moy_f;
-
-                        const initStructure = (obj, pKey) => {
-                            if (!obj[pKey]) {
-                                obj[pKey] = { mal_g:0, mal_f:0, aba_g:0, aba_f:0, class_g:0, class_f:0, moy_g:0, moy_f:0 };
-                                tranches.forEach(t => { obj[pKey][`${t}_g`] = 0; obj[pKey][`${t}_f`] = 0; });
-                            }
-                        };
-                        initStructure(promotionTotals, currentPromo);
-                        initStructure(cycleTotals, currentCycle);
-
-                        [promotionTotals[currentPromo], cycleTotals[currentCycle]].forEach(tot => {
-                            tot.mal_g += mg; tot.mal_f += mf;
-                            tot.aba_g += ag; tot.aba_f += af;
-                            tot.class_g += class_class_g; tot.class_f += class_class_f;
-                            tot.moy_g += class_moy_g; tot.moy_f += class_moy_f;
-                            tranches.forEach(t => {
-                                tot[`${t}_g`] += getInt(s[`${t}_g`]);
-                                tot[`${t}_f`] += getInt(s[`${t}_f`]);
-                            });
-                        });
-
-                        let tranchesHtml = '';
-                        tranches.forEach((t) => {
-                            const tg = getInt(s[`${t}_g`]);
-                            const tf = getInt(s[`${t}_f`]);
-                            tranchesHtml += `
-                                <td class="text-garcon-label">${tg}</td>
-                                <td class="text-fille-label">${tf}</td>
-                                <td class="text-total-label fw-bold">${tg + tf}</td>
-                            `;
-                        });
-
-                        bodyContainer.innerHTML += `
-                            <tr data-promo="${currentPromo}" data-cycle="${currentCycle}">
-                                <td class="fw-bold bg-light align-middle text-dark border-end">${currentClassName}</td>
-                                <td class="text-garcon-label">${class_eff_g}</td>
-                                <td class="text-fille-label">${class_eff_f}</td>
-                                <td class="text-total-label fw-bold bg-light">${class_eff_g + class_eff_f}</td>
-                                
-                                <td class="text-garcon-label">${mg}</td>
-                                <td class="text-fille-label">${mf}</td>
-                                <td class="text-total-label fw-bold bg-light">${mg + mf}</td>
-                                <td class="text-garcon-label">${ag}</td>
-                                <td class="text-fille-label">${af}</td>
-                                <td class="text-total-label fw-bold bg-light">${ag + af}</td>
-                                <td class="text-garcon-label fw-bold" style="color: #616161 !important;">${nc_total_g}</td>
-                                <td class="text-fille-label fw-bold" style="color: #616161 !important;">${nc_total_f}</td>
-                                <td class="text-total-label fw-bold bg-light">${nc_total_g + nc_total_f}</td>
-                                
-                                <td class="text-garcon-label">${class_class_g}</td>
-                                <td class="text-fille-label">${class_class_f}</td>
-                                <td class="text-total-label fw-bold bg-light">${class_class_g + class_class_f}</td>
-                                
-                                ${tranchesHtml}
-                                
-                                <td class="text-garcon-label">${class_moy_g}</td>
-                                <td class="text-fille-label">${class_moy_f}</td>
-                                <td class="text-total-label fw-bold bg-light">${class_moy_g + class_moy_f}</td>
-                            </tr>
-                        `;
                     }
+                    
+                    dataFound = true;
+                    const s = AppState.stats[key];
+
+                    let class_class_g = 0;
+                    let class_class_f = 0;
+                    let class_moy_g = 0;
+                    let class_moy_f = 0;
+
+                    const mg = getInt(s.malades_g);
+                    const mf = getInt(s.malades_f);
+                    const ag = getInt(s.abandons_g);
+                    const af = getInt(s.abandons_f);
+                    
+                    tranches.forEach(t => {
+                        const tg = getInt(s[`${t}_g`]);
+                        const tf = getInt(s[`${t}_f`]);
+                        class_class_g += tg;
+                        class_class_f += tf;
+                        globalTotals[`${t}_g`] += tg;
+                        globalTotals[`${t}_f`] += tf;
+                    });
+
+                    tranchesMoy.forEach(t => {
+                        class_moy_g += getInt(s[`${t}_g`]);
+                        class_moy_f += getInt(s[`${t}_f`]);
+                    });
+
+                    let class_eff_g = class_class_g + mg + ag;
+                    let class_eff_f = class_class_f + mf + af;
+                    let nc_total_g = mg + ag;
+                    let nc_total_f = mf + af;
+
+                    globalTotals.mal_g += mg;
+                    globalTotals.mal_f += mf;
+                    globalTotals.aba_g += ag;
+                    globalTotals.aba_f += af;
+                    globalTotals.class_g += class_class_g;
+                    globalTotals.class_f += class_class_f;
+                    globalTotals.moy_g += class_moy_g;
+                    globalTotals.moy_f += class_moy_f;
+
+                    const initStructure = (obj, pKey) => {
+                        if (!obj[pKey]) {
+                            obj[pKey] = { mal_g:0, mal_f:0, aba_g:0, aba_f:0, class_g:0, class_f:0, moy_g:0, moy_f:0 };
+                            tranches.forEach(t => { obj[pKey][`${t}_g`] = 0; obj[pKey][`${t}_f`] = 0; });
+                        }
+                    };
+                    initStructure(promotionTotals, currentPromo);
+                    initStructure(cycleTotals, currentCycle);
+
+                    [promotionTotals[currentPromo], cycleTotals[currentCycle]].forEach(tot => {
+                        tot.mal_g += mg; tot.mal_f += mf;
+                        tot.aba_g += ag; tot.aba_f += af;
+                        tot.class_g += class_class_g; tot.class_f += class_class_f;
+                        tot.moy_g += class_moy_g; tot.moy_f += class_moy_f;
+                        tranches.forEach(t => {
+                            tot[`${t}_g`] += getInt(s[`${t}_g`]);
+                            tot[`${t}_f`] += getInt(s[`${t}_f`]);
+                        });
+                    });
+
+                    let tranchesHtml = '';
+                    tranches.forEach((t) => {
+                        const tg = getInt(s[`${t}_g`]);
+                        const tf = getInt(s[`${t}_f`]);
+                        tranchesHtml += `
+                            <td class="text-garcon-label">${tg}</td>
+                            <td class="text-fille-label">${tf}</td>
+                            <td class="text-total-label fw-bold">${tg + tf}</td>
+                        `;
+                    });
+
+                    bodyContainer.innerHTML += `
+                        <tr data-promo="${currentPromo}" data-cycle="${currentCycle}">
+                            <td class="fw-bold bg-light align-middle text-dark border-end">${currentClassName}</td>
+                            <td class="text-garcon-label">${class_eff_g}</td>
+                            <td class="text-fille-label">${class_eff_f}</td>
+                            <td class="text-total-label fw-bold bg-light">${class_eff_g + class_eff_f}</td>
+                            
+                            <td class="text-garcon-label">${mg}</td>
+                            <td class="text-fille-label">${mf}</td>
+                            <td class="text-total-label fw-bold bg-light">${mg + mf}</td>
+                            <td class="text-garcon-label">${ag}</td>
+                            <td class="text-fille-label">${af}</td>
+                            <td class="text-total-label fw-bold bg-light">${ag + af}</td>
+                            <td class="text-garcon-label fw-bold" style="color: #616161 !important;">${nc_total_g}</td>
+                            <td class="text-fille-label fw-bold" style="color: #616161 !important;">${nc_total_f}</td>
+                            <td class="text-total-label fw-bold bg-light">${nc_total_g + nc_total_f}</td>
+                            
+                            <td class="text-garcon-label">${class_class_g}</td>
+                            <td class="text-fille-label">${class_class_f}</td>
+                            <td class="text-total-label fw-bold bg-light">${class_class_g + class_class_f}</td>
+                            
+                            ${tranchesHtml}
+                            
+                            <td class="text-garcon-label">${class_moy_g}</td>
+                            <td class="text-fille-label">${class_moy_f}</td>
+                            <td class="text-total-label fw-bold bg-light">${class_moy_g + class_moy_f}</td>
+                        </tr>
+                    `;
                 });
             }
 
