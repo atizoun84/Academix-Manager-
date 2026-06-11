@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Academix Manager - Tableau 2 : Effectifs et Résultats</title>
-    <link rel="manifest" href="manifest.json">
     <link class="no-print" rel="apple-touch-icon" href="logoapp.png">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#075E54">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -155,16 +155,29 @@
             color: #1e293b !important;
             font-weight: 700 !important;
             text-transform: uppercase;
-            font-size: 0.72rem !important;
+            font-size: 0.85rem !important;
             border: 1px solid #cbd5e1 !important;
-            padding: 5px 3px !important;
+            padding: 12px 6px !important;
             white-space: nowrap;
+            vertical-align: middle !important;
         }
         .custom-printed-table td {
             border: 1px solid #cbd5e1 !important;
-            padding: 5px 3px !important;
+            padding: 10px 6px !important;
             white-space: nowrap;
+            font-size: 0.95rem !important;
+            vertical-align: middle !important;
         }
+        
+        /* Ajustement de la première colonne pour coller au contenu */
+        .custom-printed-table th:first-child,
+        .custom-printed-table td:first-child {
+            width: 1% !important;
+            white-space: nowrap !important;
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+        }
+
         .custom-printed-table tbody tr:nth-child(even) {
             background-color: #f4f6f7 !important;
         }
@@ -175,19 +188,32 @@
             background-color: #eaeded !important;
         }
 
+        /* Harmonisation avec fond gris pour toutes les lignes de synthèse */
         .row-subtotal-promo {
-            background-color: #e8f4fd !important;
+            background-color: #e2e8f0 !important;
             font-weight: bold !important;
+        }
+        .row-subtotal-promo td {
+            padding: 12px 6px !important;
+            font-size: 0.95rem !important;
         }
         .row-total-cycle {
-            background-color: #e8f8f5 !important;
+            background-color: #cbd5e1 !important;
             font-weight: bold !important;
         }
+        .row-total-cycle td {
+            padding: 12px 6px !important;
+            font-size: 0.95rem !important;
+        }
         .row-total-establishment {
-            background-color: #fef9e7 !important;
+            background-color: #94a3b8 !important;
             font-weight: bold !important;
-            border-top: 2px solid #94a3b8 !important;
-            border-bottom: 2px solid #94a3b8 !important;
+            border-top: 2px solid #475569 !important;
+            border-bottom: 2px solid #475569 !important;
+        }
+        .row-total-establishment td {
+            padding: 14px 6px !important;
+            font-size: 1rem !important;
         }
 
         #hiddenDataContainer {
@@ -217,10 +243,21 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
 
+        /* Badge de connectivité réseau permanent */
+        .network-badge {
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
         /* Règle dynamique d'orientation qui sera modifiée par JS */
         @page {
             size: landscape;
-            margin: 5mm 5mm 10mm 5mm;
+            margin: 3mm 3mm 8mm 3mm;
         }
 
         @media print {
@@ -245,7 +282,7 @@
             
             /* Ajustement global pour maximiser la compacité */
             #summaryTableContainer {
-                zoom: 72%;
+                zoom: 75%;
             }
 
             /* En-tête Pro raffiné sur deux lignes strictement */
@@ -295,19 +332,20 @@
                 border-collapse: collapse !important;
                 border-spacing: 0 !important;
                 display: table !important;
-                font-size: 0.52rem !important; /* Micro-typographie forcée pour l'alignement */
+                font-size: 0.65rem !important;
             }
             .custom-printed-table thead {
                 display: table-header-group !important;
                 position: static !important;
             }
             .custom-printed-table th {
-                font-size: 0.52rem !important;
-                padding: 2px 1px !important;
+                font-size: 0.65rem !important;
+                padding: 6px 3px !important;
                 white-space: nowrap !important;
             }
             .custom-printed-table td {
-                padding: 2px 1px !important;
+                font-size: 0.7rem !important;
+                padding: 5px 3px !important;
                 white-space: nowrap !important;
             }
             .custom-printed-table tr {
@@ -322,9 +360,11 @@
             .custom-printed-table tbody tr:nth-child(even) {
                 background-color: #f2f2f2 !important;
             }
-            .row-subtotal-promo { background-color: #e8f4fd !important; }
-            .row-total-cycle { background-color: #e8f8f5 !important; }
-            .row-total-establishment { background-color: #fef9e7 !important; }
+            
+            /* Styles d'impression grisés forcés */
+            .row-subtotal-promo { background-color: #e2e8f0 !important; }
+            .row-total-cycle { background-color: #cbd5e1 !important; }
+            .row-total-establishment { background-color: #94a3b8 !important; }
 
             .signatures-block {
                 page-break-inside: avoid !important;
@@ -369,6 +409,13 @@
                     <span id="pageHeaderTitle" class="navbar-brand-sub">Tableau 2 : Effectifs & Résultats</span>
                 </div>
             </a>
+            
+            <div class="ms-auto me-3">
+                <span id="networkStatusBadge" class="network-badge bg-secondary text-white">
+                    <span>⚪</span> Initialisation...
+                </span>
+            </div>
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" style="border-color: white;">
                 <span class="navbar-toggler-icon" style="background-image: url('data:image/svg+xml;charset=utf8,%3Csvg viewBox=%220 0 30 30%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath stroke=%22rgba%28255, 255, 255, 1%29%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-miterlimit=%2210%22 d=%22M4 7h22M4 15h22M4 23h22%22/%3E%3C/svg%3E');"></span>
             </button>
@@ -432,7 +479,7 @@
                         </div>
                         
                         <div class="table-responsive-custom mt-2">
-                            <table class="table custom-printed-table table-sm text-center align-middle mb-0 bg-white" style="font-size: 0.75rem;" id="mainStatisticsTable">
+                            <table class="table custom-printed-table table-sm text-center align-middle mb-0 bg-white" style="font-size: 0.85rem;" id="mainStatisticsTable">
                                 <thead id="tableHeaderContainer">
                                 </thead>
                                 <tbody id="tableBodyContainer">
@@ -518,8 +565,27 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-        let AppState = {
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+
+        // Configuration fournie par l'utilisateur
+        const firebaseConfig = {
+            apiKey: "AIzaSyADkksLVNIJ4dxSU-LPC-2RKPI9L6FYQUk",
+            authDomain: "academix-manager.firebaseapp.com",
+            projectId: "academix-manager",
+            storageBucket: "academix-manager.firebasestorage.app",
+            messagingSenderId: "739622688976",
+            appId: "1:739622688976:web:40c0ac54b311142e2926d5",
+            databaseURL: "https://academix-manager-default-rtdb.europe-west1.firebasedatabase.app/"
+        };
+
+        // Initialisation de l'application Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // État global synchronisé avec Firebase
+        window.AppState = {
             isLocked: false,
             secretCode: '1234',
             school: {
@@ -534,15 +600,48 @@
             stats: {}
         };
 
+        window.FirebaseDB = db;
+        window.FirebaseRefs = { ref, onValue };
+
+        // Écouteur permanent de l'état réseau (online / offline)
+        const connectedRef = ref(db, ".info/connected");
+        onValue(connectedRef, (snap) => {
+            const badge = document.getElementById('networkStatusBadge');
+            if (badge) {
+                if (snap.val() === true) {
+                    badge.className = "network-badge bg-success text-white";
+                    badge.innerHTML = "<span>●</span> En ligne";
+                } else {
+                    badge.className = "network-badge bg-danger text-white";
+                    badge.innerHTML = "<span>○</span> Hors ligne (Cache local)";
+                }
+            }
+        });
+
+        // Écouteur permanent aligné sur la branche racine globale "AppState"
+        const appStateRef = ref(db, "AppState");
+        onValue(appStateRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                window.AppState = data;
+                if (!window.AppState.stats) window.AppState.stats = {};
+                if (!window.AppState.promotions) window.AppState.promotions = [];
+                if (!window.AppState.school) window.AppState.school = {};
+            }
+            
+            // Exécution des procédures de mise à jour d'interface
+            initializeInterfaceMetaData();
+            populatePeriods();
+            refreshTableData();
+            updateHiddenView();
+        });
+    </script>
+
+    <script>
         // Variable globale pour l'instance du modal Bootstrap
         let printModalInstance = null;
 
         window.addEventListener('DOMContentLoaded', () => {
-            loadFromLocalStorage();
-            initializeInterfaceMetaData();
-            populatePeriods();
-            refreshTableData();
-
             // Initialisation du modal d'impression
             const modalElement = document.getElementById('printConfigModal');
             if (modalElement) {
@@ -554,22 +653,10 @@
             localStorage.setItem('ProSchool_AppState_Secure', JSON.stringify(AppState));
         }
 
-        function loadFromLocalStorage() {
-            const data = localStorage.getItem('ProSchool_AppState_Secure');
-            if (data) {
-                try {
-                    AppState = JSON.parse(data);
-                    if (!AppState.stats) AppState.stats = {};
-                    updateHiddenView();
-                } catch (e) {
-                    console.error("Erreur de lecture du stockage", e);
-                }
-            }
-        }
-
         function populatePeriods() {
             const selectSemestre = document.getElementById('selectSemestre');
             if (!selectSemestre) return;
+            const previousValue = selectSemestre.value;
             selectSemestre.innerHTML = '';
             const periodType = AppState.school.academicPeriod || 'Trimestres';
 
@@ -586,6 +673,9 @@
                     <option value="3ème Trimestre">3ème Trimestre</option>
                     <option value="Annuel">Annuel</option>
                 `;
+            }
+            if(previousValue && selectSemestre.querySelector(`option[value="${previousValue}"]`)) {
+                selectSemestre.value = previousValue;
             }
         }
 
@@ -634,7 +724,7 @@
                 document.head.appendChild(stylePage);
             }
             
-            stylePage.innerHTML = `@page { size: ${orientationValue}; margin: 5mm 5mm 10mm 5mm; }`;
+            stylePage.innerHTML = `@page { size: ${orientationValue}; margin: 3mm 3mm 8mm 3mm; }`;
             
             if (printModalInstance) {
                 printModalInstance.hide();
@@ -643,6 +733,59 @@
             setTimeout(() => {
                 window.print();
             }, 300);
+        }
+
+        function normalizeCycleValue(cycle) {
+            if (!cycle) return '';
+            return cycle.trim().toLowerCase().replace(/\s+/g, '');
+        }
+
+        // Fonction d'indexation mise à jour pour trier logiquement les séries selon l'ordre strict A, B, D
+        function getClassSortWeight(className) {
+            if (!className) return 9999;
+            const clean = className.trim().toUpperCase();
+            
+            let levelWeight = 0;
+            if (clean.startsWith('6')) levelWeight = 1000;
+            else if (clean.startsWith('5')) levelWeight = 2000;
+            else if (clean.startsWith('4')) levelWeight = 3000;
+            else if (clean.startsWith('3')) levelWeight = 4000;
+            else if (clean.startsWith('2')) levelWeight = 5000;
+            else if (clean.startsWith('1')) levelWeight = 6000;
+            else if (clean.startsWith('T')) levelWeight = 7000;
+            else levelWeight = 8000;
+
+            // Application de l'ordre strict : A (10), B (20), D (30), puis les autres
+            let serieWeight = 90;
+            if (clean.includes('MC') || clean.includes('ML')) serieWeight = 5;
+            else if (clean.includes('A4') || clean.includes('A')) serieWeight = 10;
+            else if (clean.includes('B')) serieWeight = 20;
+            else if (clean.includes('D')) serieWeight = 30;
+            else if (clean.includes('C')) serieWeight = 40;
+
+            const matchNumber = clean.match(/\d+/g);
+            let subNumber = 0;
+            if (matchNumber && matchNumber.length > 1) {
+                subNumber = parseInt(matchNumber[1]); 
+            } else if (matchNumber && matchNumber.length === 1 && levelWeight === 7000) {
+                subNumber = parseInt(matchNumber[0]);
+            }
+
+            return levelWeight + serieWeight + subNumber;
+        }
+
+        // Fonction de nettoyage pour extraire la promotion normalisée (6ème, 2nde, 1ère, Tle) sans distinction de sous-série
+        function getCleanPromoName(className) {
+            if (!className) return 'Inconnue';
+            const upper = className.trim().toUpperCase();
+            if (upper.startsWith('6')) return '6ème';
+            if (upper.startsWith('5')) return '5ème';
+            if (upper.startsWith('4')) return '4ème';
+            if (upper.startsWith('3')) return '3ème';
+            if (upper.startsWith('2')) return '2nde';
+            if (upper.startsWith('1')) return '1ère';
+            if (upper.startsWith('T')) return 'Tle';
+            return upper.split(' - ')[0] || 'Inconnue';
         }
 
         function consolidateGeneralStats() {
@@ -714,106 +857,145 @@
             let cycleTotals2 = {};
             let dataFound = false;
 
-            function normalizeCycleValue(cycle) {
-                if (!cycle) return '';
-                return cycle.trim().toLowerCase().replace(/\s+/g, '');
-            }
-
             if (AppState.stats) {
-                Object.keys(AppState.stats).forEach(key => {
-                    if (key.startsWith(`${schoolYear}_${semestre}_`)) {
-                        const parts = key.split('_');
-                        const currentCycleRaw = parts[2] ? parts[2].trim() : '';
-                        const currentClassName = parts[3] ? parts[3].trim() : 'Classe';
-                        let currentPromo = currentClassName.split(' - ')[0] || 'Inconnue';
+                // Étape 1 : Récupérer et trier toutes les clés applicables à cette période
+                const activeKeys = Object.keys(AppState.stats).filter(key => key.startsWith(`${schoolYear}_${semestre}_`));
+                
+                // Comptabilisation des occurrences de chaque mention/série brute pour traiter l'unicité
+                let classOccurrences = {};
+                activeKeys.forEach(key => {
+                    const rawClassName = key.split('_')[3] || '';
+                    const cleanName = rawClassName.trim();
+                    classOccurrences[cleanName] = (classOccurrences[cleanName] || 0) + 1;
+                });
+
+                const sortedKeys = activeKeys.sort((a, b) => {
+                    const classA = a.split('_')[3] || '';
+                    const classB = b.split('_')[3] || '';
+                    return getClassSortWeight(classA) - getClassSortWeight(classB);
+                });
+
+                sortedKeys.forEach(key => {
+                    const parts = key.split('_');
+                    let currentClassName = parts[3] ? parts[3].trim() : 'Classe';
+                    
+                    // Remplacement textuel de TERMINALE par Tle
+                    if (currentClassName.toUpperCase().startsWith('TERMINALE')) {
+                        currentClassName = currentClassName.replace(/TERMINALE/i, 'Tle');
+                    }
+
+                    let currentPromo = getCleanPromoName(currentClassName);
+                    
+                    // --- MODIFICATION DEMANDÉE : NETTOYAGE DYNAMIQUE ET ABSOLU DES INDEXATIONS NUMÉRIQUES ---
+                    const matchSuffix = currentClassName.match(/^(1ère|Tle|2nde)\s*-\s*([A-Z0-9]+)$/i) || currentClassName.match(/^(1ère|Tle|2nde)\s+([A-Z0-9]+)$/i);
+                    if (matchSuffix) {
+                        const levelPart = matchSuffix[1];
+                        const seriePart = matchSuffix[2];
                         
-                        let currentCycle = '';
-                        if (AppState.promotions) {
-                            const foundPromo = AppState.promotions.find(p => p.name === currentPromo);
-                            if (foundPromo) {
-                                currentCycle = foundPromo.cycle || '';
+                        // Si la chaîne de la série finit par un ou plusieurs chiffres (comme B1, A21, D2)
+                        if (/\d+$/.test(seriePart) && !seriePart.startsWith('A4')) {
+                            const cleanSerie = seriePart.replace(/\d+$/, ''); // Supprime le ou les chiffres terminaux
+                            currentClassName = `${levelPart} - ${cleanSerie}`; // Transformation absolue (ex: 2nde - B1 -> 2nde - B)
+                        }
+                    } else if (/^[A-Z]\d+$/i.test(currentClassName)) {
+                        currentClassName = currentClassName.replace(/\d+$/, '');
+                    }
+                    // --- FIN DE LA MODIFICATION ---
+
+                    let currentCycle = '';
+                    if (AppState.promotions) {
+                        const basePromoName = parts[3] ? parts[3].trim().split(' - ')[0] : '';
+                        const foundPromo = AppState.promotions.find(p => p.name === basePromoName);
+                        if (foundPromo) {
+                            currentCycle = foundPromo.cycle || '';
+                        } else {
+                            const lowerClass = currentClassName.toLowerCase();
+                            if (lowerClass.startsWith('6') || lowerClass.startsWith('5') || lowerClass.startsWith('4') || lowerClass.startsWith('3')) {
+                                currentCycle = "1er Cycle";
+                            } else {
+                                currentCycle = "2nd Cycle";
                             }
                         }
-
-                        const s = AppState.stats[key];
-                        dataFound = true;
-
-                        const mg = getInt(s.malades_g); const mf = getInt(s.malades_f); const mt = mg + mf;
-                        const ag = getInt(s.abandons_g); const af = getInt(s.abandons_f); const at = ag + af;
-                        const nct = mt + at;
-
-                        const inf650_g = getInt(s.inf650_g); const inf650_f = getInt(s.inf650_f);
-                        const m65_75_g = getInt(s['650_750_g']); const m65_75_f = getInt(s['650_750_f']);
-                        const m75_90_g = getInt(s['750_900_g']); const m75_90_f = getInt(s['750_900_f']);
-                        const m9_10_g = getInt(s['900_1000_g']); const m9_10_f = getInt(s['900_1000_f']);
-
-                        const block_inf650_g = inf650_g;
-                        const block_inf650_f = inf650_f;
-                        const block_inf650_t = block_inf650_g + block_inf650_f;
-
-                        const block_inf750_g = inf650_g + m65_75_g;
-                        const block_inf750_f = inf650_f + m65_75_f;
-                        const block_inf750_t = block_inf750_g + block_inf750_f;
-
-                        const tot_m10_g = block_inf750_g + m75_90_g + m9_10_g;
-                        const tot_m10_f = block_inf750_f + m75_90_f + m9_10_f;
-                        const tot_m10_t = tot_m10_g + tot_m10_f;
-
-                        let tot_sup10_g = 0; let tot_sup10_f = 0;
-                        ['1000_1100', '1100_1200', '1200_1400', '1400_1600', 'sup1600'].forEach(tr => {
-                            tot_sup10_g += getInt(s[`${tr}_g`]); tot_sup10_f += getInt(s[`${tr}_f`]);
-                        });
-                        const tot_sup10_t = tot_sup10_g + tot_sup10_f;
-
-                        const class_g = tot_m10_g + tot_sup10_g; const class_f = tot_m10_f + tot_sup10_f; const class_t = class_g + class_f;
-                        const eff_g = class_g + mg + ag; const eff_f = class_f + mf + af; const eff_t = eff_g + eff_f;
-
-                        const p_inf650 = class_t > 0 ? ((block_inf650_t / class_t) * 100).toFixed(2) + '%' : '0.00%';
-                        const p_inf750 = class_t > 0 ? ((block_inf750_t / class_t) * 100).toFixed(2) + '%' : '0.00%';
-                        const p_m10 = class_t > 0 ? ((tot_m10_t / class_t) * 100).toFixed(2) + '%' : '0.00%';
-                        const p_sup10 = class_t > 0 ? ((tot_sup10_t / class_t) * 100).toFixed(2) + '%' : '0.00%';
-
-                        finalTotals.eff_g += eff_g; finalTotals.eff_f += eff_f; finalTotals.eff_t += eff_t;
-                        finalTotals.cl_g += class_g; finalTotals.cl_f += class_f; finalTotals.cl_t += class_t;
-                        finalTotals.mal_t += mt; finalTotals.aba_t += at; finalTotals.nc_t += nct;
-                        finalTotals.m65_g += block_inf650_g; finalTotals.m65_f += block_inf650_f; finalTotals.m65_t += block_inf650_t;
-                        finalTotals.m75_g += block_inf750_g; finalTotals.m75_f += block_inf750_f; finalTotals.m75_t += block_inf750_t;
-                        finalTotals.m10_g += tot_m10_g; finalTotals.m10_f += tot_m10_f; finalTotals.m10_t += tot_m10_t;
-                        finalTotals.sup10_g += tot_sup10_g; finalTotals.sup10_f += tot_sup10_f; finalTotals.sup10_t += tot_sup10_t;
-
-                        const initStructure2 = (obj, pKey) => {
-                            if (!obj[pKey]) obj[pKey] = { eff_g:0, eff_f:0, eff_t:0, cl_g:0, cl_f:0, cl_t:0, mal_t:0, aba_t:0, nc_t:0, m65_g:0, m65_f:0, m65_t:0, m75_g:0, m75_f:0, m75_t:0, m10_g:0, m10_f:0, m10_t:0, sup10_g:0, sup10_f:0, sup10_t:0 };
-                        };
-                        initStructure2(promoTotals2, currentPromo);
-                        initStructure2(cycleTotals2, currentCycle);
-
-                        [promoTotals2[currentPromo], cycleTotals2[currentCycle]].forEach(tot => {
-                            tot.eff_g += eff_g; tot.eff_f += eff_f; tot.eff_t += eff_t;
-                            tot.cl_g += class_g; tot.cl_f += class_f; tot.cl_t += class_t;
-                            tot.mal_t += mt; tot.aba_t += at; tot.nc_t += nct;
-                            tot.m65_g += block_inf650_g; tot.m65_f += block_inf650_f; tot.m65_t += block_inf650_t;
-                            tot.m75_g += block_inf750_g; tot.m75_f += block_inf750_f; tot.m75_t += block_inf750_t;
-                            tot.m10_g += tot_m10_g; tot.m10_f += tot_m10_f; tot.m10_t += tot_m10_t;
-                            tot.sup10_g += tot_sup10_g; tot.sup10_f += tot_sup10_f; tot.sup10_t += tot_sup10_t;
-                        });
-
-                        bodyContainer.innerHTML += `
-                            <tr data-promo="${currentPromo}" data-cycle="${currentCycle}">
-                                <td class="fw-bold bg-light text-dark">${currentClassName}</td>
-                                <td class="text-garcon-label">${eff_g}</td><td class="text-fille-label">${eff_f}</td><td class="text-total-label fw-bold">${eff_t}</td>
-                                <td class="text-garcon-label">${class_g}</td><td class="text-fille-label">${class_f}</td><td class="text-total-label fw-bold">${class_t}</td>
-                                <td class="text-total-label">${mt}</td><td class="text-total-label">${at}</td><td class="fw-bold">${nct}</td>
-                                <td class="text-garcon-label">${block_inf650_g}</td><td class="text-fille-label">${block_inf650_f}</td><td class="text-total-label fw-bold">${block_inf650_t}</td>
-                                <td class="fw-bold text-muted">${p_inf650}</td>
-                                <td class="text-garcon-label">${block_inf750_g}</td><td class="text-fille-label">${block_inf750_f}</td><td class="text-total-label fw-bold">${block_inf750_t}</td>
-                                <td class="fw-bold text-muted">${p_inf750}</td>
-                                <td class="text-garcon-label">${tot_m10_g}</td><td class="text-fille-label">${tot_m10_f}</td><td class="text-total-label fw-bold">${tot_m10_t}</td>
-                                <td class="fw-bold text-danger">${p_m10}</td>
-                                <td class="text-garcon-label">${tot_sup10_g}</td><td class="text-fille-label">${tot_sup10_f}</td><td class="text-total-label fw-bold">${tot_sup10_t}</td>
-                                <td class="fw-bold text-success">${p_sup10}</td>
-                            </tr>
-                        `;
                     }
+
+                    const s = AppState.stats[key];
+                    dataFound = true;
+
+                    const mg = getInt(s.malades_g); const mf = getInt(s.malades_f); const mt = mg + mf;
+                    const ag = getInt(s.abandons_g); const af = getInt(s.abandons_f); const at = ag + af;
+                    const nct = mt + at;
+
+                    const inf650_g = getInt(s.inf650_g); const inf650_f = getInt(s.inf650_f);
+                    const m65_75_g = getInt(s['650_750_g']); const m65_75_f = getInt(s['650_750_f']);
+                    const m75_90_g = getInt(s['750_900_g']); const m75_90_f = getInt(s['750_900_f']);
+                    const m9_10_g = getInt(s['900_1000_g']); const m9_10_f = getInt(s['900_1000_f']);
+
+                    const block_inf650_g = inf650_g;
+                    const block_inf650_f = inf650_f;
+                    const block_inf650_t = block_inf650_g + block_inf650_f;
+
+                    const block_inf750_g = inf650_g + m65_75_g;
+                    const block_inf750_f = inf650_f + m65_75_f;
+                    const block_inf750_t = block_inf750_g + block_inf750_f;
+
+                    const tot_m10_g = block_inf750_g + m75_90_g + m9_10_g;
+                    const tot_m10_f = block_inf750_f + m75_90_f + m9_10_f;
+                    const tot_m10_t = tot_m10_g + tot_m10_f;
+
+                    let tot_sup10_g = 0; let tot_sup10_f = 0;
+                    ['1000_1100', '1100_1200', '1200_1400', '1400_1600', 'sup1600'].forEach(tr => {
+                        tot_sup10_g += getInt(s[`${tr}_g`]); tot_sup10_f += getInt(s[`${tr}_f`]);
+                    });
+                    const tot_sup10_t = tot_sup10_g + tot_sup10_f;
+
+                    const class_g = tot_m10_g + tot_sup10_g; const class_f = tot_m10_f + tot_sup10_f; const class_t = class_g + class_f;
+                    const eff_g = class_g + mg + ag; const eff_f = class_f + mf + af; const eff_t = eff_g + eff_f;
+
+                    const p_inf650 = class_t > 0 ? ((block_inf650_t / class_t) * 100).toFixed(2) + '%' : '0.00%';
+                    const p_inf750 = class_t > 0 ? ((block_inf750_t / class_t) * 100).toFixed(2) + '%' : '0.00%';
+                    const p_m10 = class_t > 0 ? ((tot_m10_t / class_t) * 100).toFixed(2) + '%' : '0.00%';
+                    const p_sup10 = class_t > 0 ? ((tot_sup10_t / class_t) * 100).toFixed(2) + '%' : '0.00%';
+
+                    finalTotals.eff_g += eff_g; finalTotals.eff_f += eff_f; finalTotals.eff_t += eff_t;
+                    finalTotals.cl_g += class_g; finalTotals.cl_f += class_f; finalTotals.cl_t += class_t;
+                    finalTotals.mal_t += mt; finalTotals.aba_t += at; finalTotals.nc_t += nct;
+                    finalTotals.m65_g += block_inf650_g; finalTotals.m65_f += block_inf650_f; finalTotals.m65_t += block_inf650_t;
+                    finalTotals.m75_g += block_inf750_g; finalTotals.m75_f += block_inf750_f; finalTotals.m75_t += block_inf750_t;
+                    finalTotals.m10_g += tot_m10_g; finalTotals.m10_f += tot_m10_f; finalTotals.m10_t += tot_m10_t;
+                    finalTotals.sup10_g += tot_sup10_g; finalTotals.sup10_f += tot_sup10_f; finalTotals.sup10_t += tot_sup10_t;
+
+                    const initStructure2 = (obj, pKey) => {
+                        if (!obj[pKey]) obj[pKey] = { eff_g:0, eff_f:0, eff_t:0, cl_g:0, cl_f:0, cl_t:0, mal_t:0, aba_t:0, nc_t:0, m65_g:0, m65_f:0, m65_t:0, m75_g:0, m75_f:0, m75_t:0, m10_g:0, m10_f:0, m10_t:0, sup10_g:0, sup10_f:0, sup10_t:0 };
+                    };
+                    initStructure2(promoTotals2, currentPromo);
+                    initStructure2(cycleTotals2, currentCycle);
+
+                    [promoTotals2[currentPromo], cycleTotals2[currentCycle]].forEach(tot => {
+                        tot.eff_g += eff_g; tot.eff_f += eff_f; tot.eff_t += eff_t;
+                        tot.cl_g += class_g; tot.cl_f += class_f; tot.cl_t += class_t;
+                        tot.mal_t += mt; tot.aba_t += at; tot.nc_t += nct;
+                        tot.m65_g += block_inf650_g; tot.m65_f += block_inf650_f; tot.m65_t += block_inf650_t;
+                        tot.m75_g += block_inf750_g; tot.m75_f += block_inf750_f; tot.m75_t += block_inf750_t;
+                        tot.m10_g += tot_m10_g; tot.m10_f += tot_m10_f; tot.m10_t += tot_m10_t;
+                        tot.sup10_g += tot_sup10_g; tot.sup10_f += tot_sup10_f; tot.sup10_t += tot_sup10_t;
+                    });
+
+                    bodyContainer.innerHTML += `
+                        <tr data-promo="${currentPromo}" data-cycle="${currentCycle}" style="height: 55px;">
+                            <td class="fw-bold bg-light text-dark border-end">${currentClassName}</td>
+                            <td class="text-garcon-label">${eff_g}</td><td class="text-fille-label">${eff_f}</td><td class="text-total-label fw-bold">${eff_t}</td>
+                            <td class="text-garcon-label">${class_g}</td><td class="text-fille-label">${class_f}</td><td class="text-total-label fw-bold">${class_t}</td>
+                            <td class="text-total-label">${mt}</td><td class="text-total-label">${at}</td><td class="fw-bold">${nct}</td>
+                            <td class="text-garcon-label">${block_inf650_g}</td><td class="text-fille-label">${block_inf650_f}</td><td class="text-total-label fw-bold">${block_inf650_t}</td>
+                            <td class="fw-bold text-muted">${p_inf650}</td>
+                            <td class="text-garcon-label">${block_inf750_g}</td><td class="text-fille-label">${block_inf750_f}</td><td class="text-total-label fw-bold">${block_inf750_t}</td>
+                            <td class="fw-bold text-muted">${p_inf750}</td>
+                            <td class="text-garcon-label">${tot_m10_g}</td><td class="text-fille-label">${tot_m10_f}</td><td class="text-total-label fw-bold">${tot_m10_t}</td>
+                            <td class="fw-bold text-danger">${p_m10}</td>
+                            <td class="text-garcon-label">${tot_sup10_g}</td><td class="text-fille-label">${tot_sup10_f}</td><td class="text-total-label fw-bold">${tot_sup10_t}</td>
+                            <td class="fw-bold text-success">${p_sup10}</td>
+                        </tr>
+                    `;
                 });
             }
 
@@ -828,12 +1010,26 @@
                     const p_sup10 = t.cl_t > 0 ? ((t.sup10_t / t.cl_t) * 100).toFixed(2) + '%' : '0.00%';
                     const rowClass = isCycle ? "row-total-cycle" : "row-subtotal-promo";
                     
+                    let localizedLabel = label;
+                    if (isCycle) {
+                        const cleanCycle = normalizeCycleValue(label.replace('S/T', ''));
+                        if (cleanCycle.includes('1') || cleanCycle.includes('premier')) {
+                            localizedLabel = "T. Cycle 1";
+                        } else if (cleanCycle.includes('2') || cleanCycle.includes('second')) {
+                            localizedLabel = "T. Cycle 2";
+                        } else {
+                            localizedLabel = "T. " + label.replace('S/T PROMO ', '').replace('S/T ', '');
+                        }
+                    } else {
+                        localizedLabel = "S/T " + label.replace('S/T PROMO ', '').replace('S/T ', '');
+                    }
+
                     return `
-                        <tr class="${rowClass} text-dark">
-                            <td class="text-uppercase text-start ps-2 fw-bold">${label}</td>
+                        <tr class="${rowClass} text-dark" style="height: 55px;">
+                            <td class="align-middle text-uppercase text-start ps-2 fw-bold">${localizedLabel}</td>
                             <td class="text-garcon-label">${t.eff_g}</td><td class="text-fille-label">${t.eff_f}</td><td class="text-total-label fw-bold">${t.eff_t}</td>
                             <td class="text-garcon-label">${t.cl_g}</td><td class="text-fille-label">${t.cl_f}</td><td class="text-total-label fw-bold">${t.cl_t}</td>
-                            <td>${t.mal_t}</td><td>${t.aba_t}</td><td class="fw-bold">${t.nc_t}</td>
+                            <td class="text-total-label">${t.mal_t}</td><td class="text-total-label">${t.aba_t}</td><td class="fw-bold">${t.nc_t}</td>
                             <td class="text-garcon-label">${t.m65_g}</td><td class="text-fille-label">${t.m65_f}</td><td class="text-total-label fw-bold">${t.m65_t}</td><td class="fw-bold text-muted">${p_inf650}</td>
                             <td class="text-garcon-label">${t.m75_g}</td><td class="text-fille-label">${t.m75_f}</td><td class="text-total-label fw-bold">${t.m75_t}</td><td class="fw-bold text-muted">${p_inf750}</td>
                             <td class="text-garcon-label">${t.m10_g}</td><td class="text-fille-label">${t.m10_f}</td><td class="text-total-label fw-bold">${t.m10_t}</td><td class="fw-bold text-danger">${p_m10}</td>
@@ -844,18 +1040,20 @@
                 bodyContainer.innerHTML = "";
                 rows.forEach((row, idx) => {
                     const cPromo = row.getAttribute('data-promo'); const cCycle = row.getAttribute('data-cycle');
+                    
+                    // Déclenchement de la ligne de sous-total uniquement lors du basculement réel de promotion globale (2nde, 1ère, Tle complets)
                     if (idx > 0 && cPromo !== lastPromo && promoTotals2[lastPromo]) {
-                        bodyContainer.innerHTML += createSubTotalRow2(`S/T PROMO ${lastPromo}`, promoTotals2[lastPromo], false);
+                        bodyContainer.innerHTML += createSubTotalRow2(`S/T ${lastPromo}`, promoTotals2[lastPromo], false);
                     }
                     if (idx > 0 && cCycle !== lastCycle && cycleTotals2[lastCycle]) {
-                        bodyContainer.innerHTML += createSubTotalRow2(`S/T CYCLE ${lastCycle.toUpperCase()}`, cycleTotals2[lastCycle], true);
+                        bodyContainer.innerHTML += createSubTotalRow2(`S/T ${lastCycle.toUpperCase()}`, cycleTotals2[lastCycle], true);
                     }
                     bodyContainer.appendChild(row);
                     lastPromo = cPromo; lastCycle = cCycle;
                 });
 
-                if (promoTotals2[lastPromo]) bodyContainer.innerHTML += createSubTotalRow2(`S/T PROMO ${lastPromo}`, promoTotals2[lastPromo], false);
-                if (cycleTotals2[lastCycle]) bodyContainer.innerHTML += createSubTotalRow2(`S/T CYCLE ${lastCycle.toUpperCase()}`, cycleTotals2[lastCycle], true);
+                if (promoTotals2[lastPromo]) bodyContainer.innerHTML += createSubTotalRow2(`S/T ${lastPromo}`, promoTotals2[lastPromo], false);
+                if (cycleTotals2[lastCycle]) bodyContainer.innerHTML += createSubTotalRow2(`S/T ${lastCycle.toUpperCase()}`, cycleTotals2[lastCycle], true);
 
                 const global_p_inf650 = finalTotals.cl_t > 0 ? ((finalTotals.m65_t / finalTotals.cl_t) * 100).toFixed(2) + '%' : '0.00%';
                 const global_p_inf750 = finalTotals.cl_t > 0 ? ((finalTotals.m75_t / finalTotals.cl_t) * 100).toFixed(2) + '%' : '0.00%';
@@ -863,8 +1061,8 @@
                 const global_p_sup10 = finalTotals.cl_t > 0 ? ((finalTotals.sup10_t / finalTotals.cl_t) * 100).toFixed(2) + '%' : '0.00%';
 
                 bodyContainer.innerHTML += `
-                    <tr class="row-total-establishment text-dark">
-                        <td class="text-uppercase fw-bold">TOTAL ÉTABLISSEMENT</td>
+                    <tr class="row-total-establishment text-dark" style="height: 60px;">
+                        <td class="align-middle text-uppercase fw-bold">T. Etbl</td>
                         <td class="text-garcon-label">${finalTotals.eff_g}</td><td class="text-fille-label">${finalTotals.eff_f}</td><td class="text-total-label fw-bold">${finalTotals.eff_t}</td>
                         <td class="text-garcon-label">${finalTotals.cl_g}</td><td class="text-fille-label">${finalTotals.cl_f}</td><td class="text-total-label fw-bold">${finalTotals.cl_t}</td>
                         <td class="text-total-label">${finalTotals.mal_t}</td><td class="text-total-label">${finalTotals.aba_t}</td><td class="text-total-label fw-bold">${finalTotals.nc_t}</td>

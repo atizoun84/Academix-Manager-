@@ -155,6 +155,33 @@
             background-color: #e53935;
             color: var(--wa-white);
         }
+
+        /* Style pour la modale */
+        .modal-content {
+            border-radius: 15px;
+        }
+        .modal-header {
+            background-color: var(--wa-dark-green);
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+        .classe-list-item {
+            transition: all 0.2s ease;
+        }
+        .classe-list-item:hover {
+            background-color: #f8f9fa;
+            transform: translateX(5px);
+        }
+        .badge-classe {
+            background-color: var(--wa-teal);
+            color: white;
+            font-size: 0.85rem;
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
     </style>
 </head>
 <body>
@@ -164,6 +191,40 @@
             <div class="checkmark-icon" id="overlayIcon">✓</div>
             <h2 class="mt-3" id="overlayTitle">Classes Générées avec Succès !</h2>
             <p class="text-white-50" id="overlayMessage">La promotion a été ajoutée à la structure.</p>
+        </div>
+    </div>
+
+    <!-- Modal pour modifier une promotion -->
+    <div class="modal fade" id="editPromotionModal" tabindex="-1" aria-labelledby="editPromotionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editPromotionModalLabel">✏️ Modification de la promotion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nom de la promotion</label>
+                        <input type="text" id="editPromoName" class="form-control" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Cycle</label>
+                        <input type="text" id="editPromoCycle" class="form-control" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mentions/Séries</label>
+                        <input type="text" id="editPromoSections" class="form-control" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Liste des classes créées</label>
+                        <div id="editClassesList" class="list-group"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <button type="button" class="btn btn-wa" id="modalOkBtn" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -491,11 +552,47 @@
         }
         document.getElementById('btnAddPromotion').addEventListener('click', addPromotion);
 
+        // Fonction pour afficher la modale de modification
+        window.editPromotion = function(id) {
+            const promotion = AppState.promotions.find(p => p.id === id);
+            if (!promotion) return;
+            
+            // Remplir les champs de la modale
+            document.getElementById('editPromoName').value = promotion.name;
+            document.getElementById('editPromoCycle').value = promotion.cycle;
+            document.getElementById('editPromoSections').value = promotion.sections;
+            
+            // Afficher la liste des classes
+            const classesListDiv = document.getElementById('editClassesList');
+            classesListDiv.innerHTML = '';
+            
+            promotion.classes.forEach((classe, index) => {
+                const classeItem = document.createElement('div');
+                classeItem.className = 'list-group-item classe-list-item d-flex justify-content-between align-items-center';
+                const badgeSpan = document.createElement('span');
+                badgeSpan.className = 'badge-classe';
+                // Si nombre de classes est 1, ne pas écrire le 1 après la mention/série
+                let displayClassName = classe;
+                if (promotion.classes.length === 1) {
+                    // Ne pas ajouter de suffixe numérique
+                    displayClassName = promotion.sections;
+                }
+                badgeSpan.textContent = displayClassName;
+                classeItem.appendChild(badgeSpan);
+                classesListDiv.appendChild(classeItem);
+            });
+            
+            // Afficher la modale
+            const modal = new bootstrap.Modal(document.getElementById('editPromotionModal'));
+            modal.show();
+        }
+
         window.deletePromotion = function(id) {
             const confirmation = prompt("Code secret pour supprimer :");
             if (confirmation === (AppState.secretCode || '1234')) {
                 AppState.promotions = AppState.promotions.filter(p => p.id !== id);
                 saveToFirebase();
+                showSuccessAnimation("🗑️", "Supprimé", "Promotion supprimée avec succès.");
             } else if (confirmation !== null) alert("Code incorrect.");
         }
 
@@ -516,14 +613,59 @@
 
         function updateHiddenView() {
             const renderDiv = document.getElementById('renderedData');
-            let html = `<h6>Établissement: ${AppState.school.name || 'Non défini'}</h6>`;
+            let html = `<h6 class="mb-3">🏫 Établissement: <strong class="text-success">${AppState.school.name || 'Non défini'}</strong> | Année: <strong>${AppState.school.year || 'Non définie'}</strong></h6>`;
+            html += `<p class="mb-3"><strong>Directeur :</strong> ${AppState.school.director || 'Non spécifié'} | <strong>Censeur :</strong> ${AppState.school.censor || 'Non spécifié'}</p>`;
+            html += `<p class="mb-3"><strong>Période académique :</strong> ${AppState.school.academicPeriod || 'Trimestres'}</p>`;
+            
             if (AppState.promotions && AppState.promotions.length > 0) {
-                html += `<ul class="list-group">`;
-                AppState.promotions.forEach(p => {
-                    html += `<li class="list-group-item d-flex justify-content-between align-items-center"><strong>${p.name}</strong> <button class="btn btn-sm btn-danger" onclick="deletePromotion(${p.id})">Supprimer</button></li>`;
+                html += `<h6 class="mt-4 mb-3">📚 Promotions configurées :</h6>`;
+                html += `<div class="accordion" id="promotionsAccordion">`;
+                AppState.promotions.forEach((p, idx) => {
+                    // Déterminer l'affichage des classes
+                    let classesDisplay = '';
+                    if (p.classes.length === 1) {
+                        classesDisplay = `<span class="badge bg-info text-dark me-2 mb-1">${p.sections}</span>`;
+                    } else {
+                        classesDisplay = p.classes.map(c => `<span class="badge bg-secondary me-2 mb-1">${c}</span>`).join('');
+                    }
+                    
+                    html += `
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading${idx}">
+                                <button class="accordion-button ${idx !== 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${idx}" aria-expanded="${idx === 0 ? 'true' : 'false'}" aria-controls="collapse${idx}">
+                                    <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                                        <span><strong>${p.name}</strong> <span class="text-muted ms-2">(${p.cycle})</span></span>
+                                        <span class="badge bg-primary me-2">Mentions/Séries: ${p.sections}</span>
+                                        <span class="badge bg-warning text-dark">${p.classes.length} classe(s)</span>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse${idx}" class="accordion-collapse collapse ${idx === 0 ? 'show' : ''}" aria-labelledby="heading${idx}" data-bs-parent="#promotionsAccordion">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <strong>Liste des classes :</strong>
+                                        <div class="mt-2">
+                                            ${classesDisplay}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <button class="btn btn-sm btn-warning" onclick="editPromotion(${p.id})">
+                                            ✏️ Modifier
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deletePromotion(${p.id})">
+                                            🗑️ Supprimer
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 });
-                html += `</ul>`;
-            } else html += `<p>Aucune promotion.</p>`;
+                html += `</div>`;
+            } else {
+                html += `<p class="text-muted mt-3">Aucune promotion configurée pour le moment.</p>`;
+            }
+
             renderDiv.innerHTML = html;
         }
 
@@ -578,6 +720,13 @@
             }
         }
         document.getElementById('btnClearStats').addEventListener('click', clearStatisticsData);
+        
+        // Initialiser Bootstrap pour l'accordéon
+        setTimeout(() => {
+            if (typeof bootstrap !== 'undefined') {
+                // Les accordéons seront gérés automatiquement par Bootstrap
+            }
+        }, 100);
     </script>
 
     <script>

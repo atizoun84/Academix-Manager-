@@ -188,17 +188,14 @@
             margin-top: 20px;
         }
 
-        /* Bloc d'en-tête d'impression masqué sur écran */
         .print-header-clean {
             display: none;
         }
 
-        /* Bloc de pied de page d'impression masqué sur écran */
         .print-footer-clean {
             display: none;
         }
 
-        /* Style du bouton d'installation flottant */
         .btn-install-floating {
             position: fixed;
             bottom: 25px;
@@ -208,6 +205,16 @@
             border-radius: 50px;
             padding: 12px 20px;
             font-weight: bold;
+        }
+
+        .network-badge {
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
 
         @media print {
@@ -235,7 +242,6 @@
                 padding: 0 !important;
             }
             
-            /* En-tête Pro raffiné sur deux lignes strictement */
             .print-header-clean {
                 display: flex !important;
                 justify-content: space-between;
@@ -277,7 +283,6 @@
                 width: 100% !important;
             }
             
-            /* Répétition automatique de l'en-tête sur chaque page et ajustement à la largeur */
             .custom-printed-table {
                 width: 100% !important;
                 max-width: 100% !important;
@@ -319,7 +324,6 @@
                 width: 100% !important;
             }
 
-            /* Pied de page d'impression positionné en bas de page */
             .print-footer-clean {
                 display: block !important;
                 position: fixed;
@@ -355,6 +359,13 @@
                     <span id="pageHeaderTitle" class="navbar-brand-sub">Tableau 3 : Statistiques de Fin de Période</span>
                 </div>
             </a>
+
+            <div class="ms-auto me-3 no-print">
+                <span id="networkStatusBadge" class="network-badge bg-secondary text-white">
+                    <span>⚪</span> Initialisation...
+                </span>
+            </div>
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" style="border-color: white;">
                 <span class="navbar-toggler-icon" style="background-image: url('data:image/svg+xml;charset=utf8,%3Csvg viewBox=%220 0 30 30%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath stroke=%22rgba%28255, 255, 255, 1%29%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-miterlimit=%2210%22 d=%22M4 7h22M4 15h22M4 23h22%22/%3E%3C/svg%3E');"></span>
             </button>
@@ -401,7 +412,6 @@
                 <div class="card" id="summaryTableContainer">
                     <div class="card-header bg-white py-2 border-0">
                         
-                        <!-- En-tête Pro d'impression raffiné sur 2 lignes strictement -->
                         <div class="print-header-clean">
                             <div class="left-side">
                                 <h1 id="cleanPrintSchoolName">CEG 1 BEMBÈRÈKÈ</h1>
@@ -452,9 +462,9 @@
         </div>
 
         <div class="text-center mb-5 no-print mt-3">
-            <button class="btn btn-outline-secondary" onclick="toggleHiddenData()">Afficher / Masquer la base de données locale</button>
+            <button class="btn btn-outline-secondary" onclick="toggleHiddenData()">Afficher / Masquer la base de données cloud</button>
             <div id="hiddenDataContainer" class="text-start mt-3 shadow-sm">
-                <h5 class="border-bottom pb-2">Récapitulatif de l'Établissement</h5>
+                <h5 class="border-bottom pb-2">Récapitulatif de l'Établissement (Données Cloud)</h5>
                 <div id="renderedData">
                     <p class="text-muted">Aucune donnée générée pour le moment.</p>
                 </div>
@@ -463,10 +473,8 @@
 
     </div>
 
-    <!-- Bouton d'installation flottant PWA -->
     <button id="installBtn" onclick="installPWA()" style="display:none;" class="btn btn-warning btn-install-floating no-print">📲 Installer l'App</button>
 
-    <!-- Pied de page d'impression dédié -->
     <div class="print-footer-clean">
         Logiciel ACADEMIX MANAGER conçu par ATIZOUN DIGICOM / atizoun@gmail.com
     </div>
@@ -477,8 +485,24 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-        let AppState = {
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyADkksLVNIJ4dxSU-LPC-2RKPI9L6FYQUk",
+            authDomain: "academix-manager.firebaseapp.com",
+            projectId: "academix-manager",
+            storageBucket: "academix-manager.firebasestorage.app",
+            messagingSenderId: "739622688976",
+            appId: "1:739622688976:web:40c0ac54b311142e2926d5",
+            databaseURL: "https://academix-manager-default-rtdb.europe-west1.firebasedatabase.app/"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        window.AppState = {
             isLocked: false,
             secretCode: '1234',
             school: {
@@ -493,33 +517,51 @@
             stats: {}
         };
 
-        window.addEventListener('DOMContentLoaded', () => {
-            loadFromLocalStorage();
+        window.FirebaseDB = db;
+        window.FirebaseRefs = { ref, set };
+
+        // Gestion du badge de connectivité permanent dans le Header
+        const connectedRef = ref(db, ".info/connected");
+        onValue(connectedRef, (snap) => {
+            const badge = document.getElementById('networkStatusBadge');
+            if (snap.val() === true) {
+                badge.className = "network-badge bg-success text-white";
+                badge.innerHTML = "<span>●</span> En ligne";
+            } else {
+                badge.className = "network-badge bg-danger text-white";
+                badge.innerHTML = "<span>○</span> Hors ligne (Cache local)";
+            }
+        });
+
+        // Écouteur en temps réel branché sur la source de vérité Cloud "AppState"
+        const appStateRef = ref(db, "AppState");
+        onValue(appStateRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                window.AppState = data;
+                if (!window.AppState.stats) window.AppState.stats = {};
+                if (!window.AppState.promotions) window.AppState.promotions = [];
+                if (!window.AppState.school) window.AppState.school = {};
+            }
+            
+            // Re-render réactif et instantané de l'interface graphique
             initializeInterfaceMetaData();
             populatePeriods();
             refreshTableData();
+            updateHiddenView();
         });
+    </script>
 
-        function saveToLocalStorage() {
-            localStorage.setItem('ProSchool_AppState_Secure', JSON.stringify(AppState));
-        }
-
-        function loadFromLocalStorage() {
-            const data = localStorage.getItem('ProSchool_AppState_Secure');
-            if (data) {
-                try {
-                    AppState = JSON.parse(data);
-                    if (!AppState.stats) AppState.stats = {};
-                    updateHiddenView();
-                } catch (e) {
-                    console.error("Erreur de lecture du stockage", e);
-                }
-            }
-        }
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            // Remplacé la lecture locale synchrone par l'écouteur réactif asynchrone Firebase
+        });
 
         function populatePeriods() {
             const selectSemestre = document.getElementById('selectSemestre');
             if (!selectSemestre) return;
+            
+            const prevVal = selectSemestre.value;
             selectSemestre.innerHTML = '';
             const periodType = AppState.school.academicPeriod || 'Trimestres';
 
@@ -536,6 +578,9 @@
                     <option value="3ème Trimestre">3ème Trimestre</option>
                     <option value="Annuel">Annuel</option>
                 `;
+            }
+            if (prevVal && selectSemestre.querySelector(`option[value="${prevVal}"]`)) {
+                selectSemestre.value = prevVal;
             }
         }
 
@@ -559,7 +604,10 @@
         }
 
         function refreshTableData() {
-            const semestre = document.getElementById('selectSemestre').value;
+            const selectSemestre = document.getElementById('selectSemestre');
+            if (!selectSemestre || !selectSemestre.value) return;
+            
+            const semestre = selectSemestre.value;
             document.getElementById('summaryTableTitle').innerHTML = `TABLEAU 3 : STATISTIQUES DE FIN DE PÉRIODE (${semestre})`;
             document.getElementById('cleanPrintTableTitle').innerHTML = `TABLEAU 3 : STATISTIQUES DE FIN DE PÉRIODE (${semestre})`;
             consolidatePeriodEndStats();
@@ -570,9 +618,21 @@
             return cycle.trim().toLowerCase().replace(/\s+/g, '');
         }
 
+        function getNormalizedPromo(className) {
+            let promo = className.split(' - ')[0] || 'Inconnue';
+            promo = promo.trim();
+            if (promo === '2nd' || promo === '2nde' || promo.startsWith('2nd')) return '2nd';
+            if (promo === '1ère' || promo === '1ere' || promo === '1e' || promo.startsWith('1ère')) return '1ère';
+            if (promo === 'Tle' || promo === 'Terminale' || promo === 'Tle') return 'Tle';
+            return promo;
+        }
+
         function consolidatePeriodEndStats() {
+            const selectSemestre = document.getElementById('selectSemestre');
+            if (!selectSemestre || !selectSemestre.value) return;
+
             const schoolYear = AppState.school.year || '2025-2026';
-            const semestre = document.getElementById('selectSemestre').value;
+            const semestre = selectSemestre.value;
             
             const headerContainer = document.getElementById('tableHeaderContainer');
             const bodyContainer = document.getElementById('tableBodyContainer');
@@ -622,18 +682,32 @@
 
             let promoTotals3 = {};
             let cycleTotals3 = {};
-            let dataFound = false;
+            let extractedRows = [];
+
+            // Ordre strict des promotions demandées
+            const promoOrder = ["6è", "5è", "4è", "3è", "2nd", "1ère", "Tle"];
+            const getPromoIndex = (promoName) => {
+                let clean = promoName.trim().toLowerCase();
+                if (clean.startsWith("6")) return 0;
+                if (clean.startsWith("5")) return 1;
+                if (clean.startsWith("4")) return 2;
+                if (clean.startsWith("3")) return 3;
+                if (clean.startsWith("2")) return 4;
+                if (clean.startsWith("1")) return 5;
+                if (clean.startsWith("t")) return 6;
+                return 99;
+            };
 
             if (AppState.stats) {
                 Object.keys(AppState.stats).forEach(key => {
                     if (key.startsWith(`${schoolYear}_${semestre}_`)) {
                         const parts = key.split('_');
                         const currentCycle = parts[2] ? parts[2].trim().toLowerCase() : '';
-                        const currentClassName = parts[3] ? parts[3].trim() : 'Classe';
-                        let currentPromo = currentClassName.split(' - ')[0] || 'Inconnue';
+                        let currentClassName = parts[3] ? parts[3].trim() : 'Classe';
+                        let currentPromoRaw = currentClassName.split(' - ')[0] || 'Inconnue';
+                        let currentPromo = getNormalizedPromo(currentPromoRaw);
 
                         const s = AppState.stats[key];
-                        dataFound = true;
 
                         const mg = getInt(s.malades_g); const mf = getInt(s.malades_f); const mt = mg + mf;
                         const ag = getInt(s.abandons_g); const af = getInt(s.abandons_f); const at = ag + af;
@@ -676,25 +750,37 @@
                             tot.inf10_g += class_inf10_g; tot.inf10_f += class_inf10_f; tot.inf10_t += class_inf10_t;
                         });
 
-                        bodyContainer.innerHTML += `
-                            <tr data-promo="${currentPromo}" data-cycle="${currentCycle}">
-                                <td class="fw-bold bg-light">${currentClassName}</td>
-                                <td class="text-garcon-label">${eff_g}</td><td class="text-fille-label">${eff_f}</td><td class="text-total-label fw-bold">${eff_t}</td>
-                                <td class="text-garcon-label">${pres_g}</td><td class="text-fille-label">${pres_f}</td><td class="text-total-label fw-bold">${pres_t}</td>
-                                <td class="text-total-label">${mt}</td><td class="text-total-label">${at}</td>
-                                <td class="fw-bold text-muted">${p_nc}</td>
-                                <td class="text-garcon-label">${class_inf10_g}</td><td class="text-fille-label">${class_inf10_f}</td><td class="text-total-label fw-bold">${class_inf10_t}</td>
-                                <td class="fw-bold text-danger">${p_echec}</td>
-                                <td class="text-garcon-label">${class_sup10_g}</td><td class="text-fille-label">${class_sup10_f}</td><td class="text-total-label fw-bold">${class_sup10_t}</td>
-                                <td class="fw-bold text-success">${p_reussite}</td>
-                            </tr>
-                        `;
+                        extractedRows.push({
+                            promo: currentPromo,
+                            promoRaw: currentPromoRaw,
+                            cycle: currentCycle,
+                            promoIdx: getPromoIndex(currentPromo),
+                            className: currentClassName,
+                            html: `
+                                <tr data-promo="${currentPromo}" data-promoraw="${currentPromoRaw}" data-cycle="${currentCycle}">
+                                    <td class="fw-bold bg-light">${currentClassName}</td>
+                                    <td class="text-garcon-label">${eff_g}</td><td class="text-fille-label">${eff_f}</td><td class="text-total-label fw-bold">${eff_t}</td>
+                                    <td class="text-garcon-label">${pres_g}</td><td class="text-fille-label">${pres_f}</td><td class="text-total-label fw-bold">${pres_t}</td>
+                                    <td class="text-total-label">${mt}</td><td class="text-total-label">${at}</td>
+                                    <td class="fw-bold text-muted">${p_nc}</td>
+                                    <td class="text-garcon-label">${class_inf10_g}</td><td class="text-fille-label">${class_inf10_f}</td><td class="text-total-label fw-bold">${class_inf10_t}</td>
+                                    <td class="fw-bold text-danger">${p_echec}</td>
+                                    <td class="text-garcon-label">${class_sup10_g}</td><td class="text-fille-label">${class_sup10_f}</td><td class="text-total-label fw-bold">${class_sup10_t}</td>
+                                    <td class="fw-bold text-success">${p_reussite}</td>
+                                </tr>
+                            `
+                        });
                     }
                 });
             }
 
-            if (dataFound) {
-                const rows = Array.from(bodyContainer.querySelectorAll('tr'));
+            if (extractedRows.length > 0) {
+                // Tri intelligent basé sur l'index académique des promotions, puis par nom de classe
+                extractedRows.sort((a, b) => {
+                    if (a.promoIdx !== b.promoIdx) return a.promoIdx - b.promoIdx;
+                    return a.className.localeCompare(b.className, undefined, {numeric: true, sensitivity: 'base'});
+                });
+
                 let lastPromo = ''; let lastCycle = '';
 
                 const createSubTotalRow3 = (label, t) => {
@@ -715,21 +801,20 @@
                         </tr>`;
                 };
 
-                bodyContainer.innerHTML = "";
-                rows.forEach((row, idx) => {
-                    const cPromo = row.getAttribute('data-promo'); const cCycle = row.getAttribute('data-cycle');
-                    if (idx > 0 && cPromo !== lastPromo && promoTotals3[lastPromo]) {
-                        bodyContainer.innerHTML += createSubTotalRow3(`SOUS-TOTAL PROMO ${lastPromo}`, promoTotals3[lastPromo]);
+                extractedRows.forEach((item, idx) => {
+                    if (idx > 0 && item.promo !== lastPromo && promoTotals3[lastPromo]) {
+                        bodyContainer.innerHTML += createSubTotalRow3(`S/T ${lastPromo}`, promoTotals3[lastPromo]);
                     }
-                    if (idx > 0 && cCycle !== lastCycle && cycleTotals3[lastCycle]) {
-                        bodyContainer.innerHTML += createSubTotalRow3(`SOUS-TOTAL CYCLE ${lastCycle.toUpperCase()}`, cycleTotals3[lastCycle]);
+                    if (idx > 0 && item.cycle !== lastCycle && cycleTotals3[lastCycle]) {
+                        bodyContainer.innerHTML += createSubTotalRow3(`S/T ${lastCycle.toUpperCase()}`, cycleTotals3[lastCycle]);
                     }
-                    bodyContainer.appendChild(row);
-                    lastPromo = cPromo; lastCycle = cCycle;
+                    
+                    bodyContainer.innerHTML += item.html;
+                    lastPromo = item.promo; lastCycle = item.cycle;
                 });
 
-                if (promoTotals3[lastPromo]) bodyContainer.innerHTML += createSubTotalRow3(`SOUS-TOTAL PROMO ${lastPromo}`, promoTotals3[lastPromo]);
-                if (cycleTotals3[lastCycle]) bodyContainer.innerHTML += createSubTotalRow3(`SOUS-TOTAL CYCLE ${lastCycle.toUpperCase()}`, cycleTotals3[lastCycle]);
+                if (promoTotals3[lastPromo]) bodyContainer.innerHTML += createSubTotalRow3(`S/T ${lastPromo}`, promoTotals3[lastPromo]);
+                if (cycleTotals3[lastCycle]) bodyContainer.innerHTML += createSubTotalRow3(`S/T ${lastCycle.toUpperCase()}`, cycleTotals3[lastCycle]);
 
                 let global_p_nc = finalTotals3.eff_t > 0 ? ((finalTotals3.nc_t / finalTotals3.eff_t) * 100).toFixed(2) + '%' : '0.00%';
                 let global_p_echec = finalTotals3.pres_t > 0 ? ((finalTotals3.inf10_t / finalTotals3.pres_t) * 100).toFixed(2) + '%' : '0.00%';
@@ -737,7 +822,7 @@
 
                 bodyContainer.innerHTML += `
                     <tr class="row-total-establishment text-dark">
-                        <td class="text-uppercase fw-bold">TOTAL ÉTABLISSEMENT</td>
+                        <td class="text-uppercase fw-bold">T. ÉTBL</td>
                         <td class="text-garcon-label">${finalTotals3.eff_g}</td>
                         <td class="text-fille-label">${finalTotals3.eff_f}</td>
                         <td class="text-total-label">${finalTotals3.eff_t}</td>
@@ -762,14 +847,17 @@
             }
         }
 
+        // Action sensible avec vérification obligatoire du code secret avant purge cloud
         function deletePromotion(id) {
             const savedCode = AppState.secretCode || '1234';
             const confirmation = prompt("Entrez le code secret pour confirmer la suppression de cette promotion :");
             if (confirmation === savedCode) {
                 AppState.promotions = AppState.promotions.filter(p => p.id !== id);
-                saveToLocalStorage();
-                updateHiddenView();
-                refreshTableData();
+                
+                // Écriture Cloud instantanée
+                if (window.FirebaseDB) {
+                    window.FirebaseRefs.set(window.FirebaseRefs.ref(window.FirebaseDB, "AppState/promotions"), AppState.promotions);
+                }
             } else if (confirmation !== null) {
                 alert("Code secret incorrect. Suppression annulée.");
             }
@@ -786,6 +874,8 @@
 
         function updateHiddenView() {
             const renderDiv = document.getElementById('renderedData');
+            if (!renderDiv) return;
+
             let html = `<h6>Établissement: ${AppState.school.name || 'Non défini'} | Année: ${AppState.school.year || 'Non définie'}</h6>`;
             html += `<p><strong>Directeur :</strong> ${AppState.school.director || 'Non spécifié'} | <strong>Censeur :</strong> ${AppState.school.censor || 'Non spécifié'}</p>`;
             html += `<p><strong>Régime :</strong> ${AppState.school.academicPeriod || 'Non spécifié'} | <strong>Cycles:</strong> ${AppState.school.cycles ? AppState.school.cycles.join(', ') : 'Aucun'}</p>`;
@@ -809,13 +899,11 @@
         }
     </script>
 
-    <!-- Script d'installation intelligent pour la PWA -->
     <script>
       let deferredPrompt;
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        // Affiche un bouton d'installation personnalisé si présent
         const btn = document.getElementById('installBtn');
         if(btn) btn.style.display = 'block';
       });

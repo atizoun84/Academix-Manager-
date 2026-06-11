@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Academix Manager - Tableau Synoptique</title>
-    <link rel="manifest" href="manifest.json">
     <link class="apple-touch-icon" href="logoapp.png">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#075E54">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -118,16 +118,16 @@
             color: #1e293b !important;
             font-weight: 700 !important;
             text-transform: uppercase;
-            font-size: 0.72rem !important;
+            font-size: 0.85rem !important;
             border: 1px solid #cbd5e1 !important;
-            padding: 3px 1px !important; /* Marges internes réduites au maximum */
+            padding: 10px 6px !important;
             white-space: nowrap;
         }
         .custom-printed-table td {
             border: 1px solid #cbd5e1 !important;
-            padding: 3px 1px !important; /* Marges internes réduites au maximum */
+            padding: 10px 6px !important;
             white-space: nowrap;
-            font-size: 0.95rem !important; /* Taille de police augmentée pour les chiffres */
+            font-size: 1rem !important;
         }
         
         /* Ajustement de la première colonne pour coller au contenu */
@@ -135,8 +135,8 @@
         .custom-printed-table td:first-child {
             width: 1% !important;
             white-space: nowrap !important;
-            padding-left: 4px !important;
-            padding-right: 4px !important;
+            padding-left: 10px !important;
+            padding-right: 10px !important;
         }
 
         .custom-printed-table tbody tr:nth-child(even) {
@@ -149,19 +149,20 @@
             background-color: #eaeded !important;
         }
 
+        /* Fonds grisés configurés pour les totaux et sous-totaux */
         .row-subtotal-promo {
-            background-color: #e8f4fd !important;
+            background-color: #e2e8f0 !important;
             font-weight: bold !important;
         }
         .row-total-cycle {
-            background-color: #e8f8f5 !important;
+            background-color: #cbd5e1 !important;
             font-weight: bold !important;
         }
         .row-total-establishment {
-            background-color: #fef9e7 !important;
+            background-color: #94a3b8 !important;
             font-weight: bold !important;
-            border-top: 2px solid #94a3b8 !important;
-            border-bottom: 2px solid #94a3b8 !important;
+            border-top: 2px solid #475569 !important;
+            border-bottom: 2px solid #475569 !important;
         }
 
         /* Bloc d'en-tête d'impression masqué sur écran */
@@ -272,20 +273,20 @@
                 border-collapse: collapse !important;
                 border-spacing: 0 !important;
                 display: table !important;
-                font-size: 0.58rem !important; /* Micro-typographie légèrement augmentée pour lisibilité */
+                font-size: 0.7rem !important;
             }
             .custom-printed-table thead {
                 display: table-header-group !important;
                 position: static !important;
             }
             .custom-printed-table th {
-                font-size: 0.58rem !important;
-                padding: 1px 0.5px !important;
+                font-size: 0.7rem !important;
+                padding: 5px 3px !important;
                 white-space: nowrap !important;
             }
             .custom-printed-table td {
-                font-size: 0.62rem !important; /* Augmentation des caractères numériques à l'impression */
-                padding: 1px 0.5px !important;
+                font-size: 0.75rem !important;
+                padding: 5px 3px !important;
                 white-space: nowrap !important;
             }
             .custom-printed-table tr {
@@ -300,9 +301,9 @@
             .custom-printed-table tbody tr:nth-child(even) {
                 background-color: #f2f2f2 !important;
             }
-            .row-subtotal-promo { background-color: #e8f4fd !important; }
-            .row-total-cycle { background-color: #e8f8f5 !important; }
-            .row-total-establishment { background-color: #fef9e7 !important; }
+            .row-subtotal-promo { background-color: #e2e8f0 !important; }
+            .row-total-cycle { background-color: #cbd5e1 !important; }
+            .row-total-establishment { background-color: #94a3b8 !important; }
 
             .signatures-block {
                 page-break-inside: avoid !important;
@@ -409,7 +410,7 @@
                         </div>
                         
                         <div class="table-responsive-custom mt-2">
-                            <table class="table custom-printed-table table-sm text-center align-middle mb-0 bg-white" style="font-size: 0.8rem;" id="mainStatisticsTable">
+                            <table class="table custom-printed-table table-sm text-center align-middle mb-0 bg-white" style="font-size: 0.95rem;" id="mainStatisticsTable">
                                 <thead id="tableHeaderContainer">
                                 </thead>
                                 <tbody id="tableBodyContainer">
@@ -681,7 +682,7 @@
                     <th colspan="3">12 &le; M &lt; 14</th>
                     <th colspan="3">14 &le; M &lt; 16</th>
                     <th colspan="3">M &ge; 16</th>
-                    <th colspan="3" style="background-color: #ebedef !important;">NB MOY.</th>
+                    <th colspan="3" style="background-color: #cbd5e1 !important;">NB MOY.</th>
                 </tr>
                 <tr>
                     <th>G</th><th>F</th><th>T</th>
@@ -698,7 +699,7 @@
                     <th>G</th><th>F</th><th>T</th>
                     <th>G</th><th>F</th><th>T</th>
                     <th>G</th><th>F</th><th>T</th>
-                    <th style="background-color: #ebedef !important;">G</th><th style="background-color: #ebedef !important;">F</th><th style="background-color: #ebedef !important;">T</th>
+                    <th style="background-color: #cbd5e1 !important;">G</th><th style="background-color: #cbd5e1 !important;">F</th><th style="background-color: #cbd5e1 !important;">T</th>
                 </tr>
             `;
             bodyContainer.innerHTML = "";
@@ -724,7 +725,7 @@
 
             const getInt = (val) => parseInt(val) || 0;
 
-            // Fonction utilitaire pour attribuer un poids d'indexation afin de trier logiquement les classes
+            // Fonction de tri ordonné : Séries triées strictement selon A, B, D
             function getClassSortWeight(className) {
                 if (!className) return 9999;
                 const clean = className.trim().toUpperCase();
@@ -740,19 +741,17 @@
                 else levelWeight = 8000;
 
                 let serieWeight = 0;
-                if (clean.includes('MC') || clean.includes('ML')) serieWeight = 10;
-                else if (clean.includes('A4') || clean.includes('A')) serieWeight = 20;
-                else if (clean.includes('B')) serieWeight = 30;
-                else if (clean.includes('C')) serieWeight = 40;
-                else if (clean.includes('D')) serieWeight = 50;
+                if (clean.includes('MC') || clean.includes('ML')) serieWeight = 5;
+                else if (clean.includes('A4') || clean.includes('A')) serieWeight = 10; // Séries A en premier
+                else if (clean.includes('B')) serieWeight = 20;                         // Séries B en deuxième
+                else if (clean.includes('C')) serieWeight = 30;
+                else if (clean.includes('D')) serieWeight = 40;                         // Séries D en troisième
 
-                // Extraction fine d'un éventuel numéro de groupe (ex: M1, M2 ou groupe 1, 2)
                 const matchNumber = clean.match(/\d+/g);
                 let subNumber = 0;
                 if (matchNumber && matchNumber.length > 1) {
                     subNumber = parseInt(matchNumber[1]); 
                 } else if (matchNumber && matchNumber.length === 1 && levelWeight === 7000) {
-                    // Pour la Terminale (TLE D1)
                     subNumber = parseInt(matchNumber[0]);
                 }
 
@@ -760,7 +759,15 @@
             }
 
             if (AppState.stats) {
-                // Extraction et tri ordonné des clés selon la convention scolaire
+                const countMap = {};
+                Object.keys(AppState.stats)
+                    .filter(key => key.startsWith(`${schoolYear}_${semestre}_`))
+                    .forEach(key => {
+                        const className = (key.split('_')[3] || '').trim();
+                        const baseName = className.replace(/\d+$/, '').trim();
+                        countMap[baseName] = (countMap[baseName] || 0) + 1;
+                    });
+
                 const sortedKeys = Object.keys(AppState.stats)
                     .filter(key => key.startsWith(`${schoolYear}_${semestre}_`))
                     .sort((a, b) => {
@@ -771,16 +778,28 @@
 
                 sortedKeys.forEach(key => {
                     const parts = key.split('_');
-                    const currentClassName = parts[3] ? parts[3].trim() : 'Classe';
+                    let currentClassName = parts[3] ? parts[3].trim() : 'Classe';
                     
-                    let currentPromo = currentClassName.split(' - ')[0] || 'Inconnue';
+                    const baseNameCheck = currentClassName.replace(/\d+$/, '').trim();
+                    if (countMap[baseNameCheck] === 1) {
+                        currentClassName = baseNameCheck;
+                    }
+
+                    // Récupération de la promotion de base pour le sous-total (Ex: "2nde", "1ère", "Tle")
+                    let currentPromo = currentClassName.split(' ')[0] || 'Inconnue';
+                    currentPromo = currentPromo.replace(/[^a-zA-Z0-9èéà]/g, ''); // Normalisation de la promotion brute
+                    
                     let currentCycle = '';
-                    
                     if (AppState.promotions) {
-                        const foundPromo = AppState.promotions.find(p => p.name === currentPromo);
+                        const foundPromo = AppState.promotions.find(p => p.name && (p.name.includes(currentPromo) || currentClassName.includes(p.name)));
                         if (foundPromo) {
                             currentCycle = foundPromo.cycle || '';
                         }
+                    }
+                    if(!currentCycle) {
+                        // Traitement par défaut si le cycle n'est pas mappé dans AppState
+                        if(['6ème', '5ème', '4ème', '3ème'].some(c => currentClassName.includes(c))) currentCycle = '1er Cycle';
+                        else currentCycle = '2nd Cycle';
                     }
                     
                     dataFound = true;
@@ -904,7 +923,6 @@
                     const ncf = (totalsObj.mal_f || 0) + (totalsObj.aba_f || 0);
                     const rowClass = isCycle ? "row-total-cycle" : "row-subtotal-promo";
 
-                    // Normalisation intelligente des libellés de cycle au format compact
                     let localizedLabel = label;
                     if (isCycle) {
                         const cleanCycle = normalizeCycleValue(label.replace('S/T', ''));
@@ -935,6 +953,7 @@
                     const cPromo = row.getAttribute('data-promo');
                     const cCycle = row.getAttribute('data-cycle');
 
+                    // Déclenchement unique des totaux intermédiaires lors du changement de niveau réel
                     if (idx > 0 && cPromo !== lastPromo && promotionTotals[lastPromo]) {
                         bodyContainer.innerHTML += createSubTotalRow(`S/T ${lastPromo}`, promotionTotals[lastPromo], false);
                     }
@@ -947,6 +966,7 @@
                     lastCycle = cCycle;
                 });
 
+                // Fermeture des sous-totaux pour la dernière promotion et le dernier cycle parcouru
                 if (promotionTotals[lastPromo]) {
                     bodyContainer.innerHTML += createSubTotalRow(`S/T ${lastPromo}`, promotionTotals[lastPromo], false);
                 }
